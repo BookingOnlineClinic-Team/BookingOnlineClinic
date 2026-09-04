@@ -1,0 +1,103 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="anyio" />
+          <option value="CacheControl" />
+          <option value="firebase_admin" />
+          <option value="google-api-core" />
+          <option value="google-auth" />
+          <option value="google-cloud-core" />
+          <option value="google-cloud-firestore" />
+          <option value="google-cloud-storage" />
+          <option value="google-crc32c" />
+          <option value="google-resumable-media" />
+          <option value="googleapis-common-protos" />
+          <option value="grpcio" />
+          <option value="grpcio-status" />
+          <option value="h11" />
+          <option value="h2" />
+          <option value="hpack" />
+          <option value="httpcore" />
+          <option value="httpx" />
+          <option value="hyperframe" />
+          <option value="msgpack" />
+          <option value="proto-plus" />
+          <option value="protobuf" />
+          <option value="pyasn1" />
+          <option value="pyasn1_modules" />
+          <option value="PyJWT" />
+          <option value="asgiref" />
+          <option value="certifi" />
+          <option value="cffi" />
+          <option value="charset-normalizer" />
+          <option value="cloudinary" />
+          <option value="cryptography" />
+          <option value="dj-database-url" />
+          <option value="Django" />
+          <option value="django-ckeditor" />
+          <option value="django-cors-headers" />
+          <option value="django-enum" />
+          <option value="django-js-asset" />
+          <option value="django-oauth-toolkit" />
+          <option value="djangorestframework" />
+          <option value="drf-yasg" />
+          <option value="idna" />
+          <option value="inflection" />
+          <option value="jwcrypto" />
+          <option value="oauthlib" />
+          <option value="packaging" />
+          <option value="pycparser" />
+          <option value="PyMySQL" />
+          <option value="python-dotenv" />
+          <option value="pytz" />
+          <option value="PyYAML" />
+          <option value="requests" />
+          <option value="six" />
+          <option value="sqlparse" />
+          <option value="typing_extensions" />
+          <option value="tzdata" />
+          <option value="uritemplate" />
+          <option value="urllib3" />
+          <option value="amqp" />
+          <option value="billiard" />
+          <option value="celery" />
+          <option value="celery-types" />
+          <option value="click" />
+          <option value="click-didyoumean" />
+          <option value="click-plugins" />
+          <option value="click-repl" />
+          <option value="colorama" />
+          <option value="cron-descriptor" />
+          <option value="django-celery-beat" />
+          <option value="django-timezone-field" />
+          <option value="kombu" />
+          <option value="prompt_toolkit" />
+          <option value="python-crontab" />
+          <option value="python-dateutil" />
+          <option value="redis" />
+          <option value="tzlocal" />
+          <option value="vine" />
+          <option value="wcwidth" />
+          <option value="annotated-types" />
+          <option value="babel" />
+          <option value="humanize" />
+          <option value="payos" />
+          <option value="pydantic" />
+          <option value="pydantic_core" />
+          <option value="python-decouple" />
+          <option value="typing-inspection" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyStubPackagesAdvertiser" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="djangorestframework" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

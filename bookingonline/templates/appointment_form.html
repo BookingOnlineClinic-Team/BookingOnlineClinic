@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đặt lịch khám</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+
+    <h2 class="mb-4">Đặt lịch khám trực tuyến</h2>
+
+    <!-- Hiển thị thông báo flash -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-warning">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('create_appointment') }}">
+        <!-- Hồ sơ bệnh nhân -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Họ tên bệnh nhân</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="phone" class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" id="phone" name="phone" required>
+        </div>
+
+        <!-- Bác sĩ -->
+        <div class="mb-3">
+    <label for="doctor_id" class="form-label">Bác sĩ</label>
+    <select class="form-select" id="doctor_id" name="doctor_id" required>
+        {% for doctor in doctors %}
+            <option value="{{ doctor.id }}" data-fee="{{ doctor.fee }}">
+                {{ doctor.user.name }} - {{ doctor.specialization.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+        <!-- Lịch làm việc -->
+        <div class="mb-3">
+            <label for="work_schedule_id" class="form-label">Khung giờ khám</label>
+            <select class="form-select" id="work_schedule_id" name="work_schedule_id" required>
+                {% for ws in work_schedules %}
+                    <option value="{{ ws.id }}">
+                        {{ ws.workDate }} - {{ ws.session.name }} ({{ ws.startTime }} - {{ ws.endTime }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Lý do khám -->
+        <div class="mb-3">
+            <label for="reason" class="form-label">Lý do khám</label>
+            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+        </div>
+
+        <!-- Chi phí -->
+        <div class="mb-3">
+    <label class="form-label">Chi phí khám (VNĐ)</label>
+    <input type="text" class="form-control" id="fee_display" readonly>
+    <input type="hidden" name="amount" id="fee_hidden">
+</div>
+
+        <button type="submit" class="btn btn-primary">Xác nhận đặt lịch</button>
+    </form>
+
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const doctorSelect = document.getElementById("doctor_id");
+    const feeDisplay = document.getElementById("fee_display");
+    const feeHidden = document.getElementById("fee_hidden");
+
+    function updateFee() {
+        const selectedOption = doctorSelect.options[doctorSelect.selectedIndex];
+        const fee = selectedOption.getAttribute("data-fee");
+        feeDisplay.value = fee ? fee : "";
+        feeHidden.value = fee ? fee : "";
+    }
+
+    // Cập nhật ngay khi load trang (hiển thị fee của bác sĩ đầu tiên)
+    updateFee();
+
+    // Cập nhật khi chọn bác sĩ khác
+    doctorSelect.addEventListener("change", updateFee);
+});
+</script>
+</html>
