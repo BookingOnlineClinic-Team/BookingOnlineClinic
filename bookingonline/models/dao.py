@@ -3,7 +3,7 @@ Nơi DUY NHẤT được phép tương tác trực tiếp với DB (query/CRUD q
 Không đặt logic route, render_template, request.form... ở đây (theo CLAUDE.md).
 """
 from bookingonline import db
-from bookingonline.models.models import User, PatientHealthProfile
+from bookingonline.models.models import User, PatientHealthProfile, DoctorProfile
 
 
 def get_user_by_id(user_id):
@@ -62,5 +62,29 @@ def update_health_profile(profile, name, phone, gender=None, date_of_birth=None,
     profile.gender = gender
     profile.dateOfBirth = date_of_birth
     profile.address = address
+    db.session.commit()
+    return profile
+
+
+def get_doctor_profile_by_user(user_id):
+    """Lấy hồ sơ bác sĩ của user_id (quan hệ 1-1) — chỉ dùng để bác sĩ xem/sửa
+    hồ sơ CỦA CHÍNH MÌNH, gọi luôn với current_user.id nên không cần thêm
+    check quyền sở hữu như health-profile (không có id nào lộ ra ngoài URL)."""
+    return DoctorProfile.query.filter(DoctorProfile.userId == user_id).first()
+
+
+def update_doctor_profile(profile, license_number, experience_yrs, fee,
+                           description=None, bio=None, avatar_url=None):
+    """Cập nhật hồ sơ bác sĩ. KHÔNG đụng tới specializationId (đổi chuyên
+    khoa là việc của admin, ngoài phạm vi UC này) và KHÔNG đụng tới
+    totalReview/averageRating (2 field này tính từ Review của bệnh nhân,
+    không phải do bác sĩ tự nhập). Validate phải làm ở utils/index TRƯỚC khi
+    gọi hàm này."""
+    profile.licenseNumber = license_number
+    profile.experienceYrs = experience_yrs
+    profile.fee = fee
+    profile.description = description
+    profile.bio = bio
+    profile.avatarUrl = avatar_url
     db.session.commit()
     return profile

@@ -94,3 +94,56 @@ def validate_health_profile_form(form):
         'address': address or None,
     }
     return data, errors
+
+
+def validate_doctor_profile_form(form):
+    """Validate + parse dữ liệu form sửa hồ sơ bác sĩ.
+    Trả về (data, errors) — cùng convention với validate_health_profile_form."""
+    license_number = form.get('licenseNumber', '').strip()
+    experience_yrs_raw = form.get('experienceYrs', '').strip()
+    fee_raw = form.get('fee', '').strip()
+    description = form.get('description', '').strip()
+    bio = form.get('bio', '').strip()
+    avatar_url = form.get('avatarUrl', '').strip()
+
+    errors = []
+
+    if not license_number:
+        errors.append('Vui lòng nhập số chứng chỉ hành nghề.')
+    elif len(license_number) > 50:
+        errors.append('Số chứng chỉ hành nghề tối đa 50 ký tự.')
+
+    experience_yrs = None
+    if not experience_yrs_raw:
+        errors.append('Vui lòng nhập số năm kinh nghiệm.')
+    else:
+        try:
+            experience_yrs = int(experience_yrs_raw)
+            if experience_yrs < 0 or experience_yrs > 70:
+                errors.append('Số năm kinh nghiệm không hợp lệ (0-70).')
+        except ValueError:
+            errors.append('Số năm kinh nghiệm phải là số nguyên.')
+
+    fee = None
+    if not fee_raw:
+        errors.append('Vui lòng nhập chi phí khám.')
+    else:
+        try:
+            fee = float(fee_raw)
+            if fee <= 0:
+                errors.append('Chi phí khám phải lớn hơn 0.')
+        except ValueError:
+            errors.append('Chi phí khám phải là số.')
+
+    if avatar_url and not (avatar_url.startswith('http://') or avatar_url.startswith('https://')):
+        errors.append('Avatar URL phải bắt đầu bằng http:// hoặc https://.')
+
+    data = {
+        'license_number': license_number,
+        'experience_yrs': experience_yrs,
+        'fee': fee,
+        'description': description or None,
+        'bio': bio or None,
+        'avatar_url': avatar_url or None,
+    }
+    return data, errors

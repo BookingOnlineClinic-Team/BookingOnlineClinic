@@ -10,6 +10,9 @@
   {% if current_user.is_authenticated %}
   <p>Xin chào, {{ current_user.name }}!</p>
   <a href="{{ url_for('health_profiles') }}" class="btn btn-info">Hồ sơ khám</a>
+  {% if current_user.role.value == 'DOCTOR' %}
+  <a href="{{ url_for('doctor_profile_detail') }}" class="btn btn-info">Hồ sơ bác sĩ</a>
+  {% endif %}
   <!-- TODO: bật lại khi route create_appointment (chức năng đặt lịch) được cài đặt -->
   <a href="{{ url_for('logout') }}" class="btn btn-secondary">Đăng xuất</a>
 {% else %}

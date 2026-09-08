@@ -105,3 +105,35 @@ def health_profile_detail(profile_id):
         flash('Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.')
         return redirect(url_for('health_profiles'))
     return render_template('health_profile_edit.html', profile=profile, form=None)
+
+
+@app.route('/doctor-profile', methods=['GET', 'PATCH'])
+@login_required
+def doctor_profile_detail():
+    """UC: Bác sĩ xem/sửa hồ sơ CỦA CHÍNH MÌNH (1-1 với User nên không cần
+    <id> trên URL — tự nó tránh IDOR vì current_user.id lấy từ session, user
+    không thể tự đổi để xem/sửa hồ sơ bác sĩ khác).
+    GET = hiển thị form (prefill). PATCH = cập nhật thật qua fetch() (HTML
+    form thuần không hỗ trợ method PATCH), trả JSON {redirect: <url>}."""
+    if current_user.role != UserRoleEnum.DOCTOR:
+        flash('Chỉ tài khoản bác sĩ mới có hồ sơ bác sĩ.')
+        return redirect(url_for('index'))
+
+    profile = dao.get_doctor_profile_by_user(current_user.id)
+    if not profile:
+        flash('Không tìm thấy hồ sơ bác sĩ của bạn.')
+        return redirect(url_for('index'))
+
+    if request.method == 'PATCH':
+        data, errors = utils.validate_doctor_profile_form(request.form)
+
+        if errors:
+            for e in errors:
+                flash(e)
+            return jsonify(redirect=url_for('doctor_profile_detail')), 400
+
+        dao.update_doctor_profile(profile, **data)
+        flash('Cập nhật hồ sơ bác sĩ thành công!')
+        return jsonify(redirect=url_for('doctor_profile_detail'))
+
+    return render_template('doctor_profile.html', profile=profile)
