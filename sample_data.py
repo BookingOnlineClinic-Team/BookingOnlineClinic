@@ -6,10 +6,19 @@ Chạy độc lập:
     python sample_data.py
 """
 
+import sys
 from datetime import date, time, datetime, timedelta
 from bookingonline.models import dao
-from bookingonline import db, app
+from bookingonline import db, app, utils
 from bookingonline.models.models import *
+
+# Console Windows (cmd/PowerShell) mặc định không dùng UTF-8 -> print tiếng Việt
+# có dấu sẽ crash UnicodeEncodeError. Ép lại encoding stdout để chạy được trên
+# mọi terminal.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except AttributeError:
+    pass
 
 def seed():
     db.drop_all()
@@ -50,7 +59,7 @@ def seed():
         name="Quản trị viên",
         username="admin",
         email="admin@clinic.vn",
-        password="Admin@123",
+        password=utils.hash_password("Admin@123"),
         role=UserRoleEnum.ADMIN,
         gender=GenderEnum.MALE,
         phone="0900000000",
@@ -60,7 +69,7 @@ def seed():
         name="BS. Nguyễn Thị Hoa",
         username="d1",
         email="phuquy141105@gmail.com",
-        password="Doctor@123",
+        password=utils.hash_password("Doctor@123"),
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.FEMALE,
         phone="0901111111",
@@ -69,7 +78,7 @@ def seed():
         name="BS. Trần Văn Nam",
         username="d2",
         email="phuquy141105@gmail.com",
-        password="Doctor@123",
+        password=utils.hash_password("Doctor@123"),
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.MALE,
         phone="0902222222",
@@ -78,7 +87,7 @@ def seed():
         name="BS. Phạm Thuỳ Linh",
         username="d3",
         email="phuquy141105@gmail.com",
-        password="Doctor@123",
+        password=utils.hash_password("Doctor@123"),
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.FEMALE,
         phone="0903333333",
@@ -88,7 +97,7 @@ def seed():
         name="Nguyễn Văn Bình",
         username="p1",
         email="phuquy141105@gmail.com",
-        password="Patient@123",
+        password=utils.hash_password("Patient@123"),
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.MALE,
         phone="0911111111",
@@ -97,7 +106,7 @@ def seed():
         name="Trần Thị Mai",
         username="p2",
         email="phuquy141105@gmail.com",
-        password="Patient@123",
+        password=utils.hash_password("Patient@123"),
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.FEMALE,
         phone="0912222222",

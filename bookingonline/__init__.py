@@ -10,3 +10,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 login = LoginManager(app=app)
+login.login_view = 'login'
+
+# Import ở CUỐI file để tránh circular import: index.py/admin.py cần app, db, login
+# đã tồn tại trong module bookingonline trước khi chúng import ngược lại.
+from bookingonline import index, admin
