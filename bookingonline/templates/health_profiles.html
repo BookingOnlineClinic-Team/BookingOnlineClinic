@@ -45,5 +45,49 @@
   {% else %}
   <p>Bạn chưa có hồ sơ khám nào.</p>
   {% endif %}
+
+  {% if current_user.role.value == 'PATIENT' %}
+  <hr class="my-4">
+  <button type="button" class="btn btn-success mb-3" onclick="toggleCreateForm()">+ Tạo hồ sơ mới</button>
+
+  <div id="createFormBox" {% if not form %}hidden{% endif %}>
+    <h4 class="mb-3">Tạo hồ sơ khám mới</h4>
+    <form method="POST" action="{{ url_for('health_profiles') }}">
+      <div class="mb-3">
+        <label for="name" class="form-label">Họ tên *</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ form.get('name', '') if form else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="phone" class="form-label">Số điện thoại *</label>
+        <input type="text" class="form-control" id="phone" name="phone" value="{{ form.get('phone', '') if form else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="gender" class="form-label">Giới tính</label>
+        {% set g = form.get('gender', '') if form else '' %}
+        <select class="form-select" id="gender" name="gender">
+          <option value="" {% if g == '' %}selected{% endif %}>-- Không chọn --</option>
+          <option value="MALE" {% if g == 'MALE' %}selected{% endif %}>Nam</option>
+          <option value="FEMALE" {% if g == 'FEMALE' %}selected{% endif %}>Nữ</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="dateOfBirth" class="form-label">Ngày sinh</label>
+        <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="{{ form.get('dateOfBirth', '') if form else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="address" class="form-label">Địa chỉ</label>
+        <input type="text" class="form-control" id="address" name="address" value="{{ form.get('address', '') if form else '' }}">
+      </div>
+      <button type="submit" class="btn btn-primary">Tạo hồ sơ</button>
+    </form>
+  </div>
+
+  <script>
+    function toggleCreateForm() {
+      var box = document.getElementById('createFormBox');
+      box.hidden = !box.hidden;
+    }
+  </script>
+  {% endif %}
 </body>
 </html>
