@@ -27,6 +27,7 @@
         <th>Giới tính</th>
         <th>Ngày sinh</th>
         <th>Địa chỉ</th>
+        <th>Thao tác</th>
       </tr>
     </thead>
     <tbody>
@@ -38,6 +39,7 @@
         <td>{{ p.gender.value if p.gender else '' }}</td>
         <td>{{ p.dateOfBirth or '' }}</td>
         <td>{{ p.address or '' }}</td>
+        <td><a href="{{ url_for('health_profile_detail', profile_id=p.id) }}" class="btn btn-sm btn-outline-primary">Sửa</a></td>
       </tr>
       {% endfor %}
     </tbody>

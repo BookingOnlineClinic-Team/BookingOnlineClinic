@@ -5,6 +5,7 @@ theo quy ước trong CLAUDE.md).
 import re
 from datetime import date, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from bookingonline.models.models import GenderEnum
 
 # SĐT Việt Nam: 10 số, bắt đầu bằng 0 (03/05/07/08/09...)
 PHONE_REGEX = re.compile(r'^0\d{9}$')
@@ -47,3 +48,49 @@ def is_valid_birth_date(d):
     if d.year < date.today().year - 120:
         return False
     return True
+
+
+def validate_health_profile_form(form):
+    """Validate + parse dữ liệu form tạo/sửa hồ sơ khám (dùng chung cho cả 2
+    route để không lặp code / lặp lỗi validate).
+    Trả về (data, errors): data là dict giá trị đã parse sẵn để truyền thẳng
+    vào dao (chỉ đáng tin khi errors rỗng), errors là list message tiếng Việt
+    để flash cho user."""
+    name = form.get('name', '').strip()
+    phone = form.get('phone', '').strip()
+    gender_raw = form.get('gender', '').strip()
+    dob_raw = form.get('dateOfBirth', '').strip()
+    address = form.get('address', '').strip()
+
+    errors = []
+    if not name:
+        errors.append('Vui lòng nhập họ tên.')
+
+    if not is_valid_phone(phone):
+        errors.append('Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).')
+
+    gender = None
+    if gender_raw:
+        try:
+            gender = GenderEnum(gender_raw)
+        except ValueError:
+            errors.append('Giới tính không hợp lệ.')
+
+    date_of_birth = None
+    if dob_raw:
+        date_of_birth = parse_date(dob_raw)
+        if date_of_birth is None:
+            errors.append('Ngày sinh không đúng định dạng.')
+        elif date_of_birth > date.today():
+            errors.append('Ngày sinh không được ở tương lai.')
+        elif not is_valid_birth_date(date_of_birth):
+            errors.append('Ngày sinh không hợp lệ (quá xa so với hiện tại).')
+
+    data = {
+        'name': name,
+        'phone': phone,
+        'gender': gender,
+        'date_of_birth': date_of_birth,
+        'address': address or None,
+    }
+    return data, errors

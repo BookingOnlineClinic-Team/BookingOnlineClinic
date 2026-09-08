@@ -41,3 +41,26 @@ def create_health_profile(user_id, name, phone, gender=None, date_of_birth=None,
     db.session.add(profile)
     db.session.commit()
     return profile
+
+
+def get_health_profile_by_id(profile_id, user_id):
+    """Lấy 1 hồ sơ khám theo id, CHỈ trả về nếu hồ sơ đó thuộc sở hữu của
+    user_id — bắt buộc để tránh IDOR (user A sửa được hồ sơ của user B chỉ
+    bằng cách đổi id trên URL). Trả None nếu không tồn tại hoặc không phải
+    chủ sở hữu."""
+    return (PatientHealthProfile.query
+            .filter(PatientHealthProfile.id == profile_id, PatientHealthProfile.userId == user_id)
+            .first())
+
+
+def update_health_profile(profile, name, phone, gender=None, date_of_birth=None, address=None):
+    """Cập nhật 1 hồ sơ khám đã lấy sẵn qua get_health_profile_by_id (đã được
+    xác nhận đúng chủ sở hữu ở đó). Validate phải làm ở utils/index TRƯỚC khi
+    gọi hàm này."""
+    profile.name = name
+    profile.phone = phone
+    profile.gender = gender
+    profile.dateOfBirth = date_of_birth
+    profile.address = address
+    db.session.commit()
+    return profile
