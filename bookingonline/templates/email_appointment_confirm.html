@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận lịch khám</title>
+</head>
+
+<body style="
+    margin:0;
+    padding:0;
+    background-color:#F6FBFE;
+    font-family:Arial, Helvetica, sans-serif;
+">
+
+<table role="presentation"
+       style="
+           width:100%;
+           border-collapse:collapse;
+           background-color:#F6FBFE;
+       ">
+<tr>
+    <td align="center" style="padding:32px 16px;">
+
+        <table role="presentation"
+               style="
+                   width:560px;
+                   max-width:560px;
+                   border-collapse:collapse;
+                   background-color:#FFFFFF;
+               ">
+
+            <!-- Header -->
+            <tr>
+                <td style="
+                    background-color:#0077B6;
+                    padding:28px 32px;
+                ">
+
+                    <table role="presentation"
+                           style="
+                               width:100%;
+                               border-collapse:collapse;
+                           ">
+
+                        <tr>
+                            <td style="
+                                color:#FFFFFF;
+                                font-size:20px;
+                                font-weight:bold;
+                                line-height:28px;
+                            ">
+                                Phòng Khám Đa Khoa An Khang
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="
+                                color:#CAF0F8;
+                                font-size:13px;
+                                line-height:20px;
+                                padding-top:4px;
+                            ">
+                                Xác nhận lịch khám thành công
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+                <td style="padding:24px 32px;">
+
+                    <p style="
+                        font-size:15px;
+                        color:#1E293B;
+                        line-height:24px;
+                        margin:0 0 20px 0;
+                    ">
+                        Xin chào
+                        <strong>{{ patient_name }}</strong>,
+                        <br>
+
+                        Cảm ơn bạn đã đặt lịch khám tại
+                        Phòng Khám Đa Khoa An Khang.
+                        Dưới đây là thông tin chi tiết phiếu hẹn của bạn:
+                    </p>
+
+                    <!-- Appointment information -->
+                    <table role="presentation"
+                           style="
+                               width:100%;
+                               border-collapse:collapse;
+                               background-color:#F6FBFE;
+                               border:1px solid #D7EAF3;
+                           ">
+
+                        <!-- Appointment ID -->
+                        <tr>
+                            <td style="
+                                width:45%;
+                                padding:16px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Mã phiếu hẹn
+                            </td>
+
+                            <td style="
+                                width:55%;
+                                padding:16px 20px;
+                                font-size:14px;
+                                font-weight:bold;
+                                color:#03045E;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                #{{ appointment.id }}
+                            </td>
+                        </tr>
+
+                        <!-- Doctor -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Bác sĩ khám
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:14px;
+                                font-weight:bold;
+                                color:#1E293B;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                {{ doctor_name }}
+                            </td>
+                        </tr>
+
+                        <!-- Specialization -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Chuyên khoa
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:14px;
+                                font-weight:bold;
+                                color:#1E293B;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                {{ specialization_name }}
+                            </td>
+                        </tr>
+
+                        <!-- Date & Time -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Ngày giờ khám
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:14px;
+                                font-weight:bold;
+                                color:#0077B6;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                {{ appointment_time }},
+                                {{ appointment_date }}
+                            </td>
+                        </tr>
+
+                        <!-- Room -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Phòng khám
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:14px;
+                                font-weight:bold;
+                                color:#1E293B;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                {{ room_name }}
+                            </td>
+                        </tr>
+
+                        <!-- Reason -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                Lý do khám
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:14px;
+                                color:#1E293B;
+                                text-align:right;
+                                border-bottom:1px solid #D7EAF3;
+                            ">
+                                {{ reason }}
+                            </td>
+                        </tr>
+
+                        <!-- Fee -->
+                        <tr>
+                            <td style="
+                                padding:14px 20px;
+                                font-size:13px;
+                                color:#64748B;
+                            ">
+                                Phí khám (đã thanh toán)
+                            </td>
+
+                            <td style="
+                                padding:14px 20px;
+                                font-size:15px;
+                                font-weight:bold;
+                                color:#0077B6;
+                                text-align:right;
+                            ">
+                                {{ fee }} VNĐ
+                            </td>
+                        </tr>
+
+                    </table>
+
+                    <!-- Button -->
+                    <table role="presentation"
+                           style="
+                               width:100%;
+                               border-collapse:collapse;
+                               margin-top:28px;
+                           ">
+
+                        <tr>
+                            <td align="center">
+
+                                <a href="{{ appointment_url }}"
+                                   style="
+                                       display:inline-block;
+                                       background-color:#0077B6;
+                                       color:#FFFFFF;
+                                       text-decoration:none;
+                                       font-size:14px;
+                                       font-weight:bold;
+                                       line-height:20px;
+                                       padding:12px 28px;
+                                   ">
+                                    Xem phiếu hẹn khám
+                                </a>
+
+                            </td>
+                        </tr>
+
+                    </table>
+
+                    <!-- Note -->
+                    <p style="
+                        font-size:13px;
+                        color:#64748B;
+                        line-height:21px;
+                        margin:28px 0 0 0;
+                    ">
+                        Vui lòng có mặt tại quầy tiếp tân trước giờ hẹn
+                        15 phút để làm thủ tục.
+
+                        Nếu cần đổi/hủy lịch, vui lòng liên hệ Hotline
+                        <strong>1900 6868</strong>.
+                    </p>
+
+                </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+                <td style="
+                    background-color:#F6FBFE;
+                    padding:20px 32px;
+                    border-top:1px solid #D7EAF3;
+                ">
+
+                    <p style="
+                        font-size:12px;
+                        color:#94A3B8;
+                        line-height:19px;
+                        margin:0;
+                    ">
+                        Phòng Khám Đa Khoa An Khang &middot;
+                        123 Nguyễn Thị Minh Khai,
+                        P. Bến Thành, Q.1, TP.HCM
+                        <br>
+
+                        Đây là email tự động,
+                        vui lòng không trả lời trực tiếp email này.
+                    </p>
+
+                </td>
+            </tr>
+
+        </table>
+
+    </td>
+</tr>
+</table>
+
+</body>
+</html>

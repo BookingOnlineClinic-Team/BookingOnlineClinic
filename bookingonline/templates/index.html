@@ -1,18 +1,239 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Trang chủ</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-</head>
-<body class="container mt-5">
-  <h2>Trang chủ hệ thống đặt lịch khám</h2>
-  {% if current_user.is_authenticated %}
-  <p>Xin chào, {{ current_user.name }}!</p>
-  <a href="{{ url_for('create_appointment') }}" class="btn btn-success">Đặt lịch khám</a>
-  <a href="{{ url_for('logout') }}" class="btn btn-secondary">Đăng xuất</a>
-{% else %}
-  <a href="{{ url_for('login') }}" class="btn btn-primary">Đăng nhập</a>
-{% endif %}
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Trang Chủ - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <span>Chuẩn mực Y tế Nhà Bè</span>
+        </div>
+        <h1 class="hero-title">
+          Đặt Lịch Khám Nhanh,<br>
+          <span class="highlight">Chăm Sóc Toàn Diện</span> Cho Gia Đình
+        </h1>
+        <p class="hero-desc">
+          Phòng Khám Đa Khoa OU mang đến dịch vụ khám chữa bệnh chất lượng cao. Đặt lịch trực tuyến chủ động thời gian, chọn đúng bác sĩ chuyên khoa, không chờ đợi.
+        </p>
+        <div class="hero-cta-group">
+          <a href="{{ url_for('select_profile') }}" class="btn btn-primary btn-lg" id="btn-hero-book">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Đặt lịch khám ngay</span>
+          </a>
+          <a href="#doctors" class="btn btn-outline btn-lg" id="btn-hero-doctors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Gặp gỡ bác sĩ</span>
+          </a>
+        </div>
+        <div class="hero-highlights-row">
+          <div class="hero-highlight-item">
+            <div class="highlight-icon-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="highlight-text">100% Bác sĩ CKI - CKII</span>
+          </div>
+          <div class="hero-highlight-item">
+            <div class="highlight-icon-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="highlight-text">Khám đúng giờ hẹn</span>
+          </div>
+          <div class="hero-highlight-item">
+            <div class="highlight-icon-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="highlight-text">Thanh toán PayOS bảo mật</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual-wrapper">
+        <div class="hero-main-card">
+          <div class="doctor-illustration-header">
+            <div class="clinic-shield-avatar">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div>
+              <h3 style="font-size: 20px; font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
+                Phòng Khám Đa Khoa OU
+              </h3>
+              <p style="font-size: 13px; color: var(--color-text-secondary);">
+                Khám nội trú, ngoại trú và tư vấn dinh dưỡng
+              </p>
+              <div class="clinic-rating-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#D97706" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>4.9 / 5.0 (Hơn 12.000 đánh giá)</span>
+              </div>
+            </div>
+          </div>
+          <div class="quick-feature-box" style="margin-bottom: 14px; background: #FFFFFF; border: 1.5px solid var(--color-border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 14px; font-weight: 600; color: var(--color-primary);">Lịch trực hôm nay:</span>
+              <span class="badge badge-success">Đang tiếp nhận bệnh</span>
+            </div>
+            <div style="font-size: 13px; color: var(--color-text-secondary);">
+              Có <strong>8 bác sĩ</strong> chuyên khoa đang có lịch trống trong buổi sáng và chiều nay.
+            </div>
+          </div>
+
+          <div class="hero-quick-features">
+            <div class="quick-feature-box">
+              <div class="num">0 Phút</div>
+              <div class="label">Xếp hàng chờ đợi</div>
+            </div>
+            <div class="quick-feature-box">
+              <div class="num">15+ Năm</div>
+              <div class="label">Kinh nghiệm y khoa</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <a href="{{ url_for('select_profile') }}" class="btn btn-primary" style="width: 100%; padding: 14px;">
+              <span>Bắt đầu đặt khám ngay</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  <section class="section-padding" id="services">
+  <div class="container">
+    <div class="section-header-center">
+      <h2 class="section-title">Chuyên Khoa Nổi Bật</h2>
+      <p class="section-subtitle">
+        Cung cấp các dịch vụ khám chữa bệnh toàn diện với trang thiết bị xét nghiệm và chẩn đoán hình ảnh tiên tiến.
+      </p>
+    </div>
+
+    <div class="services-grid">
+      {% for service in services %}
+      <div class="service-card card-elevation-hover">
+        <div class="service-icon-wrapper">
+          {% if service.icon == 'stethoscope' %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></svg>
+          {% elif service.icon == 'sparkles' %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          {% elif service.icon == 'heart-pulse' %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"></path></svg>
+          {% else %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+          {% endif %}
+        </div>
+        <h3 class="service-title">{{ service.name }}</h3>
+        <p class="service-desc">{{ service.desc }}</p>
+        <a href="{{ url_for('select_profile') }}" class="service-action-link">
+          <span>Đặt khám chuyên khoa</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+  <section class="section-padding" id="doctors" style="background: #FFFFFF;">
+  <div class="container">
+    <div class="section-header-center">
+      <h2 class="section-title">Đội Ngũ Bác Sĩ Chuyên Khoa</h2>
+      <p class="section-subtitle">
+        Các bác sĩ giàu kinh nghiệm, từng công tác tại các bệnh viện tuyến đầu, luôn tận tâm lắng nghe và tư vấn chi tiết.
+      </p>
+    </div>
+
+    <div class="doctors-grid">
+      {% for doctor in doctors %}
+      <div class="doctor-profile-card card-elevation-hover">
+        <div class="doctor-card-top">
+          <div class="doctor-avatar-circle">
+            {{ doctor.name.split(' ')[-1][0] }}
+          </div>
+          <div class="doctor-info-header">
+            <h3>{{ doctor.name }}</h3>
+            <div class="doctor-specialty-badge">{{ doctor.specialization }}</div>
+            <div class="doctor-rating-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#D97706" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>{{ doctor.rating }} • {{ doctor.experience }} năm kinh nghiệm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="doctor-card-body">
+          <div class="doctor-details-list">
+            <div class="doctor-detail-row">
+              <span class="detail-label">Lịch khám:</span>
+              <span class="detail-value badge badge-success">Có lịch hôm nay</span>
+            </div>
+            <div class="doctor-detail-row">
+              <span class="detail-label">Phòng khám:</span>
+              <span class="detail-value">{{ doctor.room or 'Phòng 204, Lầu 2' }}</span>
+            </div>
+            <div class="doctor-detail-row">
+              <span class="detail-label">Giá khám:</span>
+              <span class="doctor-fee-value">{{ doctor.fee }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="doctor-card-actions">
+          <a href="{{ url_for('select_profile') }}" class="btn btn-primary" style="width: 100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+            <span>Chọn bác sĩ & Đặt lịch</span>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+  <section class="container">
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">15+</div>
+        <div class="stat-label">Năm đồng hành chăm sóc sức khỏe</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">50.000+</div>
+        <div class="stat-label">Bệnh nhân tin tưởng phục vụ</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Bác sĩ chuyên khoa I, II</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">0 Phút</div>
+        <div class="stat-label">Thời gian chờ đợi khi đặt trước</div>
+      </div>
+    </div>
+  </div>
+</section>
+  <section class="container" id="chatbot" style="margin-bottom: 40px;">
+  <div class="chatbot-banner-card">
+    <div class="chatbot-content">
+      <div class="badge badge-primary" style="margin-bottom: 12px;">Trợ Lý Ảo AI Y Tế</div>
+      <h3>Bạn Chưa Rõ Nên Chọn Chuyên Khoa Nào?</h3>
+      <p>
+        Hỏi trợ lý y tế thông minh OU để được gợi ý chuyên khoa phù hợp dựa trên mô tả triệu chứng và thắc mắc y khoa của bạn.
+      </p>
+    </div>
+    <div>
+      <button type="button" class="chatbot-preview-bubble" onclick="showToast('Tính năng Chatbot tư vấn: Bạn có thể gõ \'Tôi bị đau nửa đầu và buồn nôn\' để được gợi ý chuyên khoa Nội thần kinh.', 'info')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>"Gợi ý chuyên khoa khám cho tôi..."</span>
+      </button>
+    </div>
+  </div>
+</section>
+</div>
+{% endblock %}

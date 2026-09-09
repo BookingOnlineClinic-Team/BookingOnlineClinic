@@ -1,0 +1,266 @@
+/* ==========================================================================
+   Patient Profile Selection Styles
+   UC01 Step 2–3: Profile search, selectable cards & sticky continue bar
+   ========================================================================== */
+
+.profile-page-section {
+  padding: 32px 0 100px;
+}
+
+.profile-header-group {
+  margin-bottom: 28px;
+}
+
+.profile-header-group .section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search Box Area */
+.profile-search-section {
+  margin-bottom: 32px;
+}
+
+.profile-search-box {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  padding: 8px 8px 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all var(--transition-fast);
+}
+
+.profile-search-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 8px 24px rgba(0, 119, 182, 0.12);
+}
+
+.profile-search-box svg.search-icon {
+  color: var(--color-text-secondary);
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.profile-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background: transparent;
+}
+
+.btn-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: none;
+}
+
+.btn-search-clear.visible {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Action Header with Create Profile Button */
+.profile-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.profile-count-badge {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.btn-create-profile-modal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-button);
+  border: 1.5px dashed var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(0, 119, 182, 0.04);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-create-profile-modal:hover {
+  background: var(--color-bg-soft);
+  border-style: solid;
+  transform: translateY(-2px);
+}
+
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+  margin-bottom: 32px;
+}
+
+.patient-profile-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 2px solid var(--color-border);
+  padding: 24px;
+  position: relative;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+}
+
+.patient-profile-card:hover {
+  border-color: var(--color-soft-blue);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.patient-profile-card.selected {
+  border-color: var(--color-accent);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4FAFD 100%);
+  box-shadow: 0 0 0 2px var(--color-accent), 0 10px 28px rgba(0, 119, 182, 0.16);
+}
+
+.patient-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding-right: 36px;
+}
+
+.patient-avatar-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-cyan));
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 119, 182, 0.2);
+}
+
+.patient-header-info {
+  flex: 1;
+}
+
+.patient-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.patient-badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.select-check-circle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all var(--transition-fast);
+}
+
+.patient-profile-card.selected .select-check-circle {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #FFFFFF;
+  transform: scale(1.08);
+}
+
+.patient-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 14px;
+}
+
+.patient-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+}
+
+.patient-meta-row svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.patient-meta-row span.meta-val {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.profile-empty-state {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 2px dashed var(--color-border);
+  padding: 56px 24px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.profile-empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-bg-soft);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.profile-empty-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.profile-empty-desc {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  max-width: 440px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}

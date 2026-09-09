@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Cuộc Hẹn Của Tôi - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/success.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container">
+
+    <div class="profile-header-group">
+      <h1 class="section-title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Cuộc Hẹn Của Tôi</span>
+      </h1>
+      <p class="section-subtitle">Danh sách các lịch hẹn khám thuộc mọi hồ sơ bạn quản lý.</p>
+    </div>
+
+    {% if appointments %}
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      {% for a in appointments %}
+      <div class="app-card" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div class="patient-avatar-circle">{{ a.doctor.user.name.split(' ')[-1][0] }}</div>
+          <div>
+            <div style="font-weight:700; color:var(--color-primary); font-size:16px;">{{ a.doctor.user.name }} &middot; {{ a.doctor.specialization.name }}</div>
+            <div style="font-size:13px; color:var(--color-text-secondary); margin-top:4px;">
+              Bệnh nhân: {{ a.patientProfile.name }} &middot; {{ a.scheduledTime.strftime('%H:%M') }}, {{ a.scheduledDate.strftime('%d/%m/%Y') }}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          {% if a.status.value == 'CONFIRMED' %}
+            <span class="badge badge-success">Đã xác nhận</span>
+          {% elif a.status.value == 'COMPLETED' %}
+            <span class="badge badge-primary">Đã khám xong</span>
+          {% elif a.status.value == 'CANCELLED' %}
+            <span class="badge badge-danger">Đã hủy</span>
+          {% else %}
+            <span class="badge badge-warning">{{ a.status.value }}</span>
+          {% endif %}
+          <a href="{{ url_for('appointment_success', appointment_id=a.id) }}" class="btn btn-outline btn-sm">Xem phiếu hẹn</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="profile-empty-state">
+      <div class="profile-empty-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </div>
+      <h3 class="profile-empty-title">Bạn chưa có cuộc hẹn nào</h3>
+      <p class="profile-empty-desc">Đặt lịch khám ngay để chăm sóc sức khỏe của bạn và gia đình.</p>
+      <a href="{{ url_for('select_profile') }}" class="btn btn-primary">Đặt lịch khám ngay</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+</div>
+{% endblock %}

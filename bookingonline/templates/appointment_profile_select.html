@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Chọn Hồ Sơ Bệnh Nhân - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container">
+    
+    <div class="booking-progress-wrapper">
+      <ul class="progress-steps-list">
+        <li class="progress-step-item completed">
+          <div class="step-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <span class="step-label">1. Cơ sở khám</span>
+        </li>
+        <li class="progress-step-item active">
+          <div class="step-circle">2</div>
+          <span class="step-label">2. Hồ sơ bệnh nhân</span>
+        </li>
+        <li class="progress-step-item">
+          <div class="step-circle">3</div>
+          <span class="step-label">3. Chuyên khoa & Bác sĩ</span>
+        </li>
+        <li class="progress-step-item">
+          <div class="step-circle">4</div>
+          <span class="step-label">4. Thời gian khám</span>
+        </li>
+        <li class="progress-step-item">
+          <div class="step-circle">5</div>
+          <span class="step-label">5. Xác nhận & Thanh toán</span>
+        </li>
+      </ul>
+    </div>
+    <div class="profile-header-group">
+      <h1 class="section-title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Chọn Hồ Sơ Bệnh Nhân</span>
+      </h1>
+      <p class="section-subtitle">
+        Vui lòng chọn một hồ sơ người khám bên dưới hoặc tạo hồ sơ mới để tiếp tục đặt lịch hẹn.
+      </p>
+    </div>
+    <div class="profile-search-section">
+      <div class="profile-search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input 
+          type="text" 
+          id="profile-search-input" 
+          class="profile-search-input" 
+          placeholder="Lọc nhanh hồ sơ của tôi theo tên hoặc SĐT..."
+          autocomplete="off"
+        >
+        <button type="button" class="btn-search-clear" id="btn-search-clear" aria-label="Xóa tìm kiếm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-search-section">
+      <form method="POST" action="{{ url_for('select_profile') }}" style="display:flex; gap: 12px; flex-wrap: wrap; background:#FFFFFF; border:1.5px solid var(--color-border); border-radius:20px; padding:16px 20px;">
+        <div style="flex:1; min-width:220px;">
+          <label class="form-label" for="search-phone" style="margin-bottom:6px;">Số điện thoại hồ sơ khám</label>
+          <input type="text" id="search-phone" name="phone" class="form-control" placeholder="VD: 0901234567" required>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label class="form-label" for="search-name" style="margin-bottom:6px;">Họ và tên (đúng theo hồ sơ)</label>
+          <input type="text" id="search-name" name="name" class="form-control" placeholder="VD: Nguyễn Văn An" required>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button type="submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>Tìm hồ sơ khám</span>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="profile-action-row">
+      <div class="profile-count-badge">
+        Danh sách có <strong id="profile-count-display">{{ profiles|length }}</strong> hồ sơ thành viên
+      </div>
+      <button type="button" class="btn-create-profile-modal" onclick="openModal('modal-create-profile')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Thêm hồ sơ người bệnh</span>
+      </button>
+    </div>
+    <input type="hidden" id="selected-profile-id" name="selected_profile_id" value="">
+    <div class="profiles-grid" id="profiles-grid" {% if not profiles %}style="display:none;"{% endif %}>
+      {% for profile in profiles %}
+      <div 
+        class="patient-profile-card {% if loop.first %}selected{% endif %}" 
+        data-profile-id="{{ profile.id }}"
+        data-name="{{ profile.name }}"
+        data-phone="{{ profile.phone }}"
+      >
+        <div class="select-check-circle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="patient-card-header">
+          <div class="patient-avatar-circle">
+            {{ profile.name.split(' ')[-1][0] }}
+          </div>
+          <div class="patient-header-info">
+            <h3 class="patient-name">{{ profile.name }}</h3>
+            <div class="patient-badges-row">
+              {% if profile.gender %}
+              <span class="badge {% if profile.gender.value == 'MALE' %}badge-gender-male{% else %}badge-gender-female{% endif %}">
+                {{ 'Nam' if profile.gender.value == 'MALE' else 'Nữ' }}
+              </span>
+              {% endif %}
+              <span class="badge badge-primary">Hồ sơ khám bệnh</span>
+            </div>
+          </div>
+        </div>
+        <div class="patient-meta-list">
+          <div class="patient-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Ngày sinh: <span class="meta-val">{{ profile.dateOfBirth.strftime('%d/%m/%Y') if profile.dateOfBirth else 'Chưa cập nhật' }}</span></span>
+          </div>
+          <div class="patient-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <span>SĐT: <span class="meta-val patient-phone-val">{{ profile.phone }}</span></span>
+          </div>
+          <div class="patient-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span>Địa chỉ: <span class="meta-val">{{ profile.address or 'Chưa cập nhật' }}</span></span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="profile-empty-state" id="profile-empty-state" {% if profiles %}style="display: none;"{% endif %}>
+      <div class="profile-empty-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <h3 class="profile-empty-title">
+        {% if profiles %}Không tìm thấy hồ sơ{% else %}Bạn chưa có hồ sơ khám nào{% endif %}
+      </h3>
+      <p class="profile-empty-desc">
+        {% if profiles %}
+        Không có hồ sơ nào trùng khớp với từ khóa lọc. Vui lòng kiểm tra lại hoặc tạo hồ sơ bệnh nhân mới.
+        {% else %}
+        Hãy tạo hồ sơ khám đầu tiên (cho bản thân hoặc người thân) để bắt đầu đặt lịch.
+        {% endif %}
+      </p>
+      <button type="button" class="btn btn-primary" onclick="openModal('modal-create-profile')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Tạo hồ sơ mới ngay</span>
+      </button>
+    </div>
+
+  </div>
+</section>
+  <div class="sticky-action-bar">
+  <div class="action-bar-content">
+    <div>
+      <div style="font-size: 13px; color: var(--color-text-secondary);">Hồ sơ đã chọn:</div>
+      <div style="font-size: 16px; font-weight: 700; color: var(--color-primary);" id="bar-selected-name">
+        {{ profiles[0].name if profiles else 'Chưa chọn hồ sơ' }}
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <span>Quay lại</span>
+      </a>
+      <a href="#" class="btn btn-primary {% if not profiles %}disabled{% endif %}" id="btn-continue-booking" data-base-url="{{ url_for('select_specialization') }}" {% if not profiles %}disabled{% endif %}>
+        <span>Tiếp tục chọn lịch khám</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-backdrop" id="modal-create-profile">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+        <span>Tạo Hồ Sơ Bệnh Nhân Mới</span>
+      </h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modal-create-profile')" aria-label="Đóng">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form id="create-profile-form" method="POST" action="{{ url_for('create_profile') }}">
+      <div class="modal-body">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label" for="modal-fullname">
+              Họ và tên bệnh nhân <span class="required">*</span>
+            </label>
+            <input type="text" name="name" id="modal-fullname" class="form-control" placeholder="Ví dụ: Trần Thị Mai" required>
+            <div class="invalid-feedback">Vui lòng nhập họ và tên bệnh nhân.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-phone">
+              Số điện thoại liên hệ <span class="required">*</span>
+            </label>
+            <input type="tel" name="phone" id="modal-phone" class="form-control" placeholder="Ví dụ: 0987654321" required>
+            <div class="invalid-feedback">Số điện thoại không hợp lệ (cần 10 chữ số).</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label" for="modal-gender">Giới tính</label>
+            <select name="gender" id="modal-gender" class="form-control">
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-dob">Ngày sinh <span class="required">*</span></label>
+            <input type="date" name="date_of_birth" id="modal-dob" class="form-control" required>
+            <div class="invalid-feedback">Vui lòng chọn ngày sinh.</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="modal-address">Địa chỉ thường trú</label>
+          <input type="text" name="address" id="modal-address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện...">
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-create-profile')">Hủy bỏ</button>
+        <button type="submit" class="btn btn-primary" id="btn-submit-create-profile">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Lưu hồ sơ mới</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script>
+  if (new URLSearchParams(window.location.search).get('open_create_modal') === '1') {
+    document.addEventListener('DOMContentLoaded', () => openModal('modal-create-profile'));
+  }
+</script>
+{% endblock %}
