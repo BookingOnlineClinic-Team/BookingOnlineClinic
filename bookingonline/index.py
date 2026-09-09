@@ -385,5 +385,36 @@ def chatbot_stub():
     flash("Tính năng Chatbot gợi ý chuyên khoa sẽ được triển khai ở use case riêng.", "info")
     return redirect(url_for("select_profile"))
 
+
+
+#-----------------ThaiHe--------------------
+@app.route("/doctor-list")
+@login_required
+def doctor_list():
+    keyword = request.args.get("q", "").strip()
+
+    specialization_id = request.args.get(
+        "specialization_id",
+        default=None,
+        type=int
+    )
+
+    doctors = dao.get_doctors(
+        keyword=keyword,
+        specialization_id=specialization_id
+    )
+
+    specializations = dao.get_all_specializations()
+
+    return render_template(
+        "doctor_list.html",
+        doctors=doctors,
+        specializations=specializations,
+        keyword=keyword,
+        selected_specialization_id=specialization_id
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+

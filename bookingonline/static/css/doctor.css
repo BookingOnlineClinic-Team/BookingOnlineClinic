@@ -1,0 +1,326 @@
+.doctor-list-section {
+  padding: 40px 0 100px;
+}
+
+.doctor-page-header {
+  margin-bottom: 28px;
+}
+
+.doctor-page-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 6px;
+}
+
+.doctor-page-subtitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+.doctor-filter-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 32px;
+}
+
+.doctor-filter-form {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.doctor-filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.doctor-filter-actions .btn {
+  white-space: nowrap;
+}
+
+.doctor-filter-actions svg {
+  margin-right: 5px;
+}
+
+.doctor-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.doctor-result-title {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.doctor-result-count {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.doctor-active-filter {
+  background: var(--color-bg-soft);
+  color: var(--color-secondary);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+}
+
+.doctor-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.doctor-list-card {
+  background: #FFFFFF;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  transition: all var(--transition-normal);
+}
+
+.doctor-list-card:hover {
+  border-color: var(--color-soft-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.doctor-card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.doctor-list-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(0, 119, 182, 0.25);
+    border: 3px solid #FFFFFF;
+}
+
+.doctor-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+        135deg,
+        var(--color-secondary),
+        var(--color-accent)
+    );
+    color: #FFFFFF;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.doctor-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.doctor-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.doctor-list-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.doctor-specialty-badge {
+  padding: 5px 10px;
+  background: var(--color-bg-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.doctor-list-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.doctor-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doctor-meta-item svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-accent);
+}
+
+.doctor-rating {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.doctor-rating svg {
+  color: var(--color-warning);
+}
+
+.doctor-review-count {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.doctor-list-bio {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--color-section-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.doctor-card-right {
+  min-width: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.doctor-fee-box {
+  text-align: right;
+}
+
+.doctor-fee-label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+.doctor-fee-value {
+  font-size: 20px;
+  color: var(--color-accent);
+}
+
+.doctor-card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.doctor-empty-state {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 52px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.doctor-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--color-bg-soft);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doctor-empty-state h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.doctor-empty-state p {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .doctor-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-filter-actions {
+    justify-content: flex-start;
+  }
+
+  .doctor-list-card {
+    flex-direction: column;
+  }
+
+  .doctor-card-right {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .doctor-fee-box {
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .doctor-list-section {
+    padding-top: 24px;
+  }
+
+  .doctor-page-title {
+    font-size: 25px;
+  }
+
+  .doctor-filter-card {
+    padding: 18px;
+  }
+
+  .doctor-result-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .doctor-list-card {
+    padding: 18px;
+  }
+
+  .doctor-card-left {
+    flex-direction: column;
+  }
+
+  .doctor-card-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .doctor-card-actions .btn {
+    width: 100%;
+  }
+}

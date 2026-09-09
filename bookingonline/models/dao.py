@@ -301,3 +301,29 @@ def get_notifications_by_user(user_id, limit=10):
 
 def get_appointment_by_id(appointment_id):
     return Appointment.query.get(appointment_id)
+
+#--------------------ThaiHe---------------------
+def get_doctors(keyword=None, specialization_id=None):
+    query = (
+        DoctorProfile.query
+        .join(User, DoctorProfile.userId == User.id)
+        .filter(
+            User.role == UserRoleEnum.DOCTOR,
+            User.active.is_(True)
+        )
+    )
+
+    if keyword:
+        keyword = keyword.strip()
+
+        if keyword:
+            query = query.filter(
+                User.name.ilike(f"%{keyword}%")
+            )
+
+    if specialization_id:
+        query = query.filter(
+            DoctorProfile.specializationId == specialization_id
+        )
+
+    return query.order_by(User.name.asc()).all()
