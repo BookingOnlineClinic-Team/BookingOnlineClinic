@@ -1,5 +1,6 @@
 import os
 import io
+import re
 import base64
 from datetime import datetime, timedelta, date, time as dtime
 from flask import render_template, url_for
@@ -8,11 +9,69 @@ from payos import PayOS
 from payos.types import CreatePaymentLinkRequest
 from bookingonline import app
 from bookingonline.models import dao
-from bookingonline.models.models import (NotificationTypeEnum, WorkSchedule, WorkScheduleSessionEnum)
+from bookingonline.models.models import (NotificationTypeEnum, WorkSchedule, WorkScheduleSessionEnum, GenderEnum)
 from bookingonline import db
 import qrcode
 
 mail = Mail(app)
+
+PHONE_REGEX = re.compile(r"^0\d{9}$")
+
+
+def is_valid_phone(phone):
+    return bool(phone) and bool(PHONE_REGEX.match(phone.strip()))
+
+
+def is_valid_birth_date(d):
+    if d is None:
+        return False
+    if d > date.today():
+        return False
+    if d.year < date.today().year - 120:
+        return False
+    return True
+
+
+def validate_patient_profile_form(form):
+    name = form.get("name", "").strip()
+    phone = form.get("phone", "").strip()
+    gender_raw = form.get("gender", "").strip()
+    dob_raw = form.get("date_of_birth", "").strip()
+    address = form.get("address", "").strip()
+
+    errors = []
+    if not name:
+        errors.append("Vui lòng nhập họ tên.")
+
+    if not is_valid_phone(phone):
+        errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).")
+
+    gender = None
+    if gender_raw:
+        try:
+            gender = GenderEnum[gender_raw]
+        except KeyError:
+            errors.append("Giới tính không hợp lệ.")
+
+    date_of_birth = None
+    if dob_raw:
+        try:
+            date_of_birth = datetime.strptime(dob_raw, "%Y-%m-%d").date()
+        except ValueError:
+            date_of_birth = None
+            errors.append("Ngày sinh không đúng định dạng.")
+        else:
+            if not is_valid_birth_date(date_of_birth):
+                errors.append("Ngày sinh không hợp lệ (ở tương lai hoặc quá xa so với hiện tại).")
+
+    data = {
+        "name": name,
+        "phone": phone,
+        "gender": gender,
+        "date_of_birth": date_of_birth,
+        "address": address or None,
+    }
+    return data, errors
 payos_client = PayOS(client_id=os.environ.get("PAYOS_CLIENT_ID"),api_key=os.environ.get("PAYOS_API_KEY"),checksum_key=os.environ.get("PAYOS_CHECKSUM_KEY"))
 
 

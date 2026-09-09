@@ -108,6 +108,31 @@ def create_profile():
         return redirect(url_for("select_specialization", profile_id=profile.id))
     return redirect(url_for("select_profile", open_create_modal=1))
 
+@app.route("/patient-profiles/<int:profile_id>", methods=["GET", "PATCH"])
+@login_required
+def patient_profile_detail(profile_id):
+    profile = dao.get_patient_profile_by_owner(profile_id, current_user.id)
+
+    if request.method == "PATCH":
+        if not profile:
+            flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
+            return jsonify(redirect=url_for("select_profile")), 404
+
+        data, errors = utils.validate_patient_profile_form(request.form)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return jsonify(redirect=url_for("patient_profile_detail", profile_id=profile_id)), 400
+
+        dao.update_patient_profile(profile, **data)
+        flash("Cập nhật hồ sơ khám thành công!", "success")
+        return jsonify(redirect=url_for("select_profile"))
+
+    if not profile:
+        flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
+        return redirect(url_for("select_profile"))
+    return render_template("patient_profile_edit.html", active_page="profile", profile=profile)
+
 @app.route("/specializations")
 @login_required
 def select_specialization():

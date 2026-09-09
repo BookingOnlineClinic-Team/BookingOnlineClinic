@@ -195,6 +195,22 @@ def create_patient_profile(owner, name, phone, gender=None, date_of_birth=None, 
     db.session.commit()
     return profile
 
+def get_patient_profile_by_owner(profile_id, user_id):
+    return (
+        PatientHealthProfile.query
+        .filter(PatientHealthProfile.id == profile_id, PatientHealthProfile.userId == user_id)
+        .first()
+    )
+
+def update_patient_profile(profile, name, phone, gender=None, date_of_birth=None, address=None):
+    profile.name = name
+    profile.phone = phone
+    profile.gender = gender
+    profile.dateOfBirth = date_of_birth
+    profile.address = address
+    db.session.commit()
+    return profile
+
 def find_conflicting_appointment(patient_profile_id, scheduled_date, scheduled_time):
     return (
         Appointment.query
