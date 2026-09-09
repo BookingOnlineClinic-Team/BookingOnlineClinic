@@ -226,10 +226,10 @@
           <div class="doctor-card-actions">
 
             <a
-              href="#"
-              class="btn btn-outline btn-sm"
+                href="{{ url_for('doctor_detail', doctor_id=doctor.id) }}"
+                class="btn btn-outline btn-sm"
             >
-              Xem hồ sơ
+                Xem hồ sơ
             </a>
 
             <a
