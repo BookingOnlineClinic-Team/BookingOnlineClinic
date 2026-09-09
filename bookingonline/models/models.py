@@ -64,6 +64,8 @@ class User(Base, UserMixin):
 
 class Specialization(Base):
     name = Column(String(120), unique=True, nullable=False)
+    icon = Column(String(50), default="stethoscope")
+    description = Column(String(255))
     doctors = relationship("DoctorProfile", backref="specialization")
     chatbotSessions = relationship("ChatbotSession", backref="specialization")
 
@@ -82,6 +84,7 @@ class DoctorProfile(Base):
     description = Column(Text)
     fee = db.Column(db.Float, default=200000)
     bio = Column(Text)
+    room = Column(String(50), default="Phòng 204, Lầu 2")
     totalReview = Column(Integer, default=0)
     averageRating = Column(Float, default=0.0)
     avatarUrl = Column(String(255))

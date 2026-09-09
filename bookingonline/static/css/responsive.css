@@ -1,0 +1,284 @@
+@media (max-width: 1024px) {
+  :root {
+    --font-size-hero: 36px;
+    --font-size-section: 24px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .doctors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .specializations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .schedule-grid-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .payment-split-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --font-size-hero: 30px;
+    --font-size-section: 22px;
+  }
+
+  .navbar-container {
+    height: 68px;
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 68px;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--color-border);
+    padding: 20px 24px;
+    flex-direction: column;
+    align-items: stretch;
+    box-shadow: var(--shadow-lg);
+    display: none;
+    z-index: 99;
+  }
+
+  .nav-menu.show-mobile {
+    display: flex;
+    animation: slideDown 0.3s ease forwards;
+  }
+
+  .nav-link.active::after {
+    display: none;
+  }
+
+  .nav-link.active {
+    background: var(--color-bg-soft);
+  }
+
+  .btn-mobile-toggle {
+    display: flex;
+  }
+
+  .user-name-text, .user-role-text {
+    display: none;
+  }
+
+  .user-btn {
+    padding: 4px;
+  }
+
+  .hero-section {
+    padding: 36px 0 50px;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .hero-highlights-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .login-container-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .login-left-content {
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .login-badge {
+    margin: 0 auto 16px;
+  }
+
+  .illustration-feature-list {
+    text-align: left;
+  }
+
+  .profiles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-steps-list::before {
+    display: none;
+  }
+
+  .progress-steps-list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+
+  .step-label {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .specializations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slots-chips-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .doctor-card-main-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .doctor-card-right-action {
+    align-items: flex-start;
+    margin-top: 14px;
+    width: 100%;
+  }
+
+  .doctor-card-right-action .btn {
+    width: 100%;
+  }
+
+  .date-pills-list {
+    gap: 4px;
+  }
+
+  .receipt-items-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-list::before {
+    display: none;
+  }
+
+  .timeline-list {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .timeline-node {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    max-width: 100%;
+    gap: 16px;
+  }
+
+  .timeline-bullet {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .chatbot-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --font-size-hero: 26px;
+    --font-size-section: 20px;
+    --radius-card: 16px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn-lg {
+    width: 100%;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-cta-group .btn {
+    width: 100%;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctors-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slots-chips-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .action-bar-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .action-bar-content .btn {
+    width: 100%;
+  }
+
+  .status-modal-actions {
+    flex-direction: column;
+  }
+
+  .status-modal-actions .btn {
+    width: 100%;
+  }
+
+  .payment-actions-group {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Thanh Toán PayOS QR - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}payment-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="payment-page">
+<section class="payment-page-section">
+  <div class="container">
+    <div class="booking-progress-wrapper">
+      <ul class="progress-steps-list">
+        <li class="progress-step-item completed">
+          <div class="step-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <span class="step-label">1. Đăng nhập</span>
+        </li>
+        <li class="progress-step-item completed">
+          <div class="step-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <span class="step-label">2. Hồ sơ bệnh nhân</span>
+        </li>
+        <li class="progress-step-item completed">
+          <div class="step-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <span class="step-label">3. Chuyên khoa & Bác sĩ</span>
+        </li>
+        <li class="progress-step-item completed">
+          <div class="step-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <span class="step-label">4. Ngày giờ khám</span>
+        </li>
+        <li class="progress-step-item active">
+          <div class="step-circle">5</div>
+          <span class="step-label">5. Thanh toán PayOS</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="payment-split-grid">
+      <div class="payment-info-column">
+        <div class="payment-summary-card">
+          <div class="payment-card-header">
+            <h2 class="card-title">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2" style="vertical-align:middle; margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              Thông Tin Phiếu Khám
+            </h2>
+            <span class="pulse-badge"><span class="pulse-dot"></span> Đang chờ thanh toán</span>
+          </div>
+
+          <div class="patient-info-preview-box">
+            <div class="preview-row">
+              <span class="preview-label">Mã giao dịch:</span>
+              <span class="preview-value" style="font-family: monospace;">{{ payment.transactionId }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Người khám:</span>
+              <span class="preview-value">{{ payment.appointment.patientProfile.name }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Bác sĩ khám:</span>
+              <span class="preview-value">{{ payment.appointment.doctor.user.name }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Chuyên khoa:</span>
+              <span class="preview-value">{{ payment.appointment.doctor.specialization.name }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Thời gian khám:</span>
+              <span class="preview-value" style="color: var(--color-accent);">
+                {{ payment.appointment.scheduledTime.strftime('%H:%M') }}, {{ payment.appointment.scheduledDate.strftime('%d/%m/%Y') }}
+              </span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Địa điểm:</span>
+              <span class="preview-value">{{ payment.appointment.doctor.room }} - An Khang Clinic</span>
+            </div>
+          </div>
+
+          <div class="payment-fee-summary">
+            <div class="fee-row">
+              <span>Phí khám chuyên khoa</span>
+              <span>{{ "{:,.0f}".format(payment.amount).replace(',', '.') }} ₫</span>
+            </div>
+            <div class="fee-total-row">
+              <span style="font-weight:700; color: var(--color-primary);">Tổng tiền thanh toán</span>
+              <span class="fee-total-price">{{ "{:,.0f}".format(payment.amount).replace(',', '.') }} ₫</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="payment-qr-column">
+        <div class="payos-card-wrapper">
+
+          <div class="payos-card-header">
+            <div class="payos-brand-logo">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span>PayOS <span class="payos-tag">VietQR</span></span>
+            </div>
+            <div class="countdown-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Hết hạn: <span class="countdown-timer-value" id="countdown-timer" data-expire-at="{{ expire_at }}" data-payment-id="{{ payment.id }}">15:00</span></span>
+            </div>
+          </div>
+          <div class="payos-card-body" id="payos-normal-body">
+            <div class="qr-display-container">
+              <div class="qr-code-frame">
+                {% if qr_image_data_uri %}
+                <img src="{{ qr_image_data_uri }}" alt="Mã QR thanh toán" style="width:100%; height:100%; object-fit:contain;">
+                {% else %}
+                <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="180" height="180" rx="12" fill="#FFFFFF"/>
+                  <rect x="15" y="15" width="40" height="40" rx="6" fill="#03045E"/>
+                  <rect x="22" y="22" width="26" height="26" rx="4" fill="#FFFFFF"/>
+                  <rect x="27" y="27" width="16" height="16" rx="2" fill="#0077B6"/>
+                  <rect x="15" y="125" width="40" height="40" rx="6" fill="#03045E"/>
+                  <rect x="22" y="132" width="26" height="26" rx="4" fill="#FFFFFF"/>
+                  <rect x="27" y="137" width="16" height="16" rx="2" fill="#0077B6"/>
+                  <rect x="65" y="18" width="10" height="10" fill="#023E8A"/>
+                  <rect x="85" y="18" width="10" height="10" fill="#03045E"/>
+                  <rect x="105" y="18" width="10" height="10" fill="#023E8A"/>
+                  <rect x="65" y="38" width="10" height="10" fill="#03045E"/>
+                  <rect x="95" y="38" width="10" height="10" fill="#0077B6"/>
+                  <rect x="18" y="65" width="10" height="10" fill="#03045E"/>
+                  <rect x="38" y="65" width="10" height="10" fill="#023E8A"/>
+                  <rect x="65" y="65" width="10" height="10" fill="#03045E"/>
+                  <rect x="105" y="65" width="10" height="10" fill="#0077B6"/>
+                  <rect x="125" y="65" width="10" height="10" fill="#023E8A"/>
+                  <rect x="145" y="65" width="10" height="10" fill="#03045E"/>
+                  <circle cx="90" cy="90" r="22" fill="#0077B6"/>
+                  <circle cx="90" cy="90" r="18" fill="#FFFFFF"/>
+                  <path d="M85 85L90 95L95 85" stroke="#0077B6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="18" y="85" width="10" height="10" fill="#023E8A"/>
+                  <rect x="45" y="85" width="10" height="10" fill="#03045E"/>
+                  <rect x="125" y="85" width="10" height="10" fill="#03045E"/>
+                  <rect x="150" y="85" width="10" height="10" fill="#023E8A"/>
+                  <rect x="65" y="115" width="10" height="10" fill="#0077B6"/>
+                  <rect x="85" y="115" width="10" height="10" fill="#03045E"/>
+                  <rect x="110" y="115" width="10" height="10" fill="#023E8A"/>
+                  <rect x="65" y="135" width="10" height="10" fill="#03045E"/>
+                  <rect x="95" y="135" width="10" height="10" fill="#023E8A"/>
+                  <rect x="125" y="135" width="10" height="10" fill="#03045E"/>
+                  <rect x="145" y="135" width="10" height="10" fill="#0077B6"/>
+                  <rect x="65" y="155" width="10" height="10" fill="#023E8A"/>
+                  <rect x="85" y="155" width="10" height="10" fill="#03045E"/>
+                  <rect x="115" y="155" width="10" height="10" fill="#0077B6"/>
+                  <rect x="135" y="155" width="10" height="10" fill="#023E8A"/>
+                </svg>
+                {% endif %}
+              </div>
+              <div class="qr-scan-guide">
+                Quét mã bằng ứng dụng ngân hàng hỗ trợ VietQR / Napas 247
+              </div>
+            </div>
+
+            <div class="transfer-info-box">
+              <div class="transfer-info-row">
+                <span>Ngân hàng thụ hưởng:</span>
+                <span style="font-weight:600;">MBBank (Ngân hàng Quân Đội)</span>
+              </div>
+              <div class="transfer-info-row">
+                <span>Chủ tài khoản:</span>
+                <span style="font-weight:600;">PHONG KHAM DA KHOA AN KHANG</span>
+              </div>
+              <div class="transfer-info-row">
+                <span>Số tiền:</span>
+                <span style="color: var(--color-accent); font-weight: 700;">{{ "{:,.0f}".format(payment.amount).replace(',', '.') }} ₫</span>
+              </div>
+              <div class="transfer-info-row">
+                <span>Nội dung chuyển khoản:</span>
+                <div class="transfer-code-group">
+                  <span class="transfer-code-highlight" id="transfer-code-text">{{ payment.qrCode }}</span>
+                  <button type="button" class="btn-copy-code" id="btn-copy-transfer-code">Sao chép</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="payment-actions-group">
+              <a href="{{ url_for('appointment_schedule') }}" class="btn btn-secondary" style="grid-column: 1 / -1;">Hủy &amp; quay lại</a>
+            </div>
+
+            <div style="text-align:center; font-size:12px; color:var(--color-text-secondary); margin-top:12px;">
+              Trang này sẽ <strong>tự động chuyển sang phiếu hẹn</strong> ngay khi PayOS xác nhận đã nhận được thanh toán — không cần thao tác gì thêm.
+            </div>
+          </div>
+
+          <div class="payment-checking-state" id="payos-checking-state">
+            <div class="checking-spinner-ring"></div>
+            <h3 class="checking-title">Đang Kiểm Tra Trạng Thái...</h3>
+            <p class="checking-desc">Hệ thống đang đồng bộ kết quả giao dịch. Vui lòng giữ nguyên màn hình trong giây lát.</p>
+          </div>
+
+          <div class="payment-success-state" id="payos-success-state">
+            <div class="payment-success-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 class="checking-title">Thanh Toán Thành Công!</h3>
+            <p class="checking-desc">
+              Giao dịch <strong>{{ "{:,.0f}".format(payment.amount).replace(',', '.') }} ₫</strong> đã được xác nhận. Lịch hẹn của bạn đã chính thức ghi nhận, email xác nhận đã được gửi.
+            </p>
+            <div style="display:flex; gap:12px; justify-content:center; margin-top:24px;">
+              <a href="{{ url_for('appointment_success', appointment_id=payment.appointment.id) }}" class="btn btn-primary" id="link-view-receipt">Xem phiếu hẹn khám</a>
+            </div>
+          </div>
+
+          <div class="payment-failed-state" id="payos-failed-state">
+            <div class="payment-failed-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <h3 class="checking-title">Giao Dịch Đã Hết Hạn</h3>
+            <div class="failed-reasons-box">
+              Phiên thanh toán 15 phút đã hết hạn hoặc giao dịch bị hủy. Lịch hẹn giữ chỗ tạm thời đã được giải phóng, vui lòng đặt lại.
+            </div>
+            <a href="{{ url_for('appointment_schedule') }}" class="btn btn-secondary">Đặt lại lịch khám</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const timerEl = document.getElementById('countdown-timer');
+    const expireAt = timerEl ? new Date(timerEl.getAttribute('data-expire-at')) : null;
+    const paymentId = timerEl ? timerEl.getAttribute('data-payment-id') : null;
+    const normalBody = document.getElementById('payos-normal-body');
+    const checkingState = document.getElementById('payos-checking-state');
+    const successState = document.getElementById('payos-success-state');
+    const failedState = document.getElementById('payos-failed-state');
+    let pollInterval = null;
+    let settled = false;
+
+    function tick() {
+      if (!expireAt || !timerEl) return;
+      const diff = Math.max(0, Math.floor((expireAt.getTime() - Date.now()) / 1000));
+      const m = String(Math.floor(diff / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+      if (diff <= 0 && !settled) {
+        clearInterval(timerInterval);
+        if (pollInterval) clearInterval(pollInterval);
+        showFailed();
+      }
+    }
+    const timerInterval = setInterval(tick, 1000);
+    tick();
+
+    function showSuccess() {
+      settled = true;
+      if (pollInterval) clearInterval(pollInterval);
+      if (checkingState) checkingState.style.display = 'none';
+      if (successState) successState.style.display = 'block';
+      showToast('Xác nhận thanh toán thành công!', 'success');
+    }
+    function showFailed() {
+      settled = true;
+      if (normalBody) normalBody.style.display = 'none';
+      if (checkingState) checkingState.style.display = 'none';
+      if (failedState) failedState.style.display = 'block';
+    }
+    if (paymentId) {
+      pollInterval = setInterval(() => {
+        if (settled) { clearInterval(pollInterval); return; }
+        fetch(`/payment/status/${paymentId}?format=json`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'PAID') {
+              showSuccess();
+              setTimeout(() => { window.location.href = `/appointment/success/${data.appointment_id || ''}`; }, 1200);
+            } else if (data.status === 'FAILED') {
+              showFailed();
+            }
+          })
+          .catch(() => {});
+      }, 4000);
+    }
+
+    const btnCopyCode = document.getElementById('btn-copy-transfer-code');
+    if (btnCopyCode) {
+      btnCopyCode.addEventListener('click', () => {
+        const code = document.getElementById('transfer-code-text')?.innerText || '';
+        navigator.clipboard.writeText(code).then(() => {
+          showToast(`Đã sao chép nội dung chuyển khoản: ${code}`, 'success');
+        }).catch(() => {});
+      });
+    }
+  });
+</script>
+{% endblock %}

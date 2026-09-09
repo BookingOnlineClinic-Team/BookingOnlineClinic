@@ -1,0 +1,353 @@
+.payment-page-section {
+  padding: 36px 0 80px;
+}
+
+.payment-split-grid {
+  display: grid;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.payment-summary-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.payment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.payment-booking-id {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-secondary);
+  background: var(--color-bg-soft);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F59E0B;
+  animation: pulseGlow 1.5s infinite;
+}
+
+.patient-info-preview-box {
+  background: var(--color-section-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.preview-row:last-child {
+  margin-bottom: 0;
+}
+
+.preview-label {
+  color: var(--color-text-secondary);
+}
+
+.preview-value {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.payment-fee-summary {
+  padding-top: 16px;
+  border-top: 2px dashed var(--color-border);
+}
+
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.fee-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.fee-total-price {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.payos-card-wrapper {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 1.5px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.payos-card-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: #FFFFFF;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.payos-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.payos-tag {
+  background: #00B4D8;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.countdown-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.countdown-timer-value {
+  font-weight: 800;
+  font-family: monospace;
+  font-size: 15px;
+  color: #CAF0F8;
+}
+
+.payos-card-body {
+  padding: 32px;
+}
+
+.qr-display-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.qr-code-frame {
+  width: 240px;
+  height: 240px;
+  background: #FFFFFF;
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(3, 4, 94, 0.08);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scan-guide {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 14px;
+}
+
+.transfer-info-box {
+  background: var(--color-section-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.transfer-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.transfer-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.transfer-code-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transfer-code-highlight {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--color-accent);
+  background: #FFFFFF;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.btn-copy-code {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.btn-copy-code:hover {
+  background: var(--color-bg-soft);
+  border-color: var(--color-accent);
+}
+
+.payment-actions-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.payment-checking-state {
+  display: none;
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.checking-spinner-ring {
+  width: 76px;
+  height: 76px;
+  border: 4px solid var(--color-bg-soft);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  animation: spin 1s linear infinite;
+}
+
+.checking-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.checking-desc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.payment-success-state {
+  display: none;
+  text-align: center;
+  padding: 48px 24px;
+  animation: fadeIn 0.4s ease;
+}
+
+.payment-success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: bounceIn 0.5s ease;
+}
+
+.payment-success-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+.payment-failed-state {
+  display: none;
+  text-align: center;
+  padding: 48px 24px;
+  animation: fadeIn 0.4s ease;
+}
+
+.payment-failed-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #FEE2E2;
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.payment-failed-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+.failed-reasons-box {
+  background: #FFF5F5;
+  border: 1px solid #FED7D7;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #C53030;
+  text-align: left;
+  margin: 20px 0;
+}
