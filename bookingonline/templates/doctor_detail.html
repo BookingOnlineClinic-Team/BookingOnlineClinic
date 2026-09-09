@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ bác sĩ - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}doctor-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="doctor-detail-section">
+    <div class="container">
+
+        <!-- Breadcrumb / quay lại -->
+        <div class="doctor-detail-back">
+            <a href="{{ url_for('doctor_list') }}">
+                ← Quay lại danh sách bác sĩ
+            </a>
+        </div>
+
+        <!-- ==================== QB-12: HỒ SƠ BÁC SĨ ==================== -->
+        <div class="doctor-profile-card">
+
+            <div class="doctor-profile-main">
+
+                <!-- Avatar: đồng bộ với index -->
+                <div class="doctor-profile-avatar">
+                    {{ doctor.user.name.split(' ')[-1][0] }}
+                </div>
+
+                <div class="doctor-profile-info">
+
+                    <span class="doctor-specialty-badge">
+                        {{ doctor.specialization.name }}
+                    </span>
+
+                    <h1 class="doctor-profile-name">
+                        {{ doctor.user.name }}
+                    </h1>
+
+                    <div class="doctor-profile-meta">
+
+                        <div class="doctor-profile-meta-item">
+                            <span class="doctor-profile-meta-label">
+                                Kinh nghiệm
+                            </span>
+                            <strong>
+                                {{ doctor.experienceYrs or 0 }} năm
+                            </strong>
+                        </div>
+
+                        <div class="doctor-profile-meta-item">
+                            <span class="doctor-profile-meta-label">
+                                Đánh giá
+                            </span>
+
+                            <strong>
+                                {% if doctor.totalReview and doctor.totalReview > 0 %}
+                                    ★ {{ "%.1f"|format(doctor.averageRating or 0) }}
+                                    ({{ doctor.totalReview }})
+                                {% else %}
+                                    Chưa có đánh giá
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        {% if doctor.room %}
+                        <div class="doctor-profile-meta-item">
+                            <span class="doctor-profile-meta-label">
+                                Phòng khám
+                            </span>
+                            <strong>{{ doctor.room }}</strong>
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="doctor-profile-booking">
+
+                <span class="doctor-profile-fee-label">
+                    Phí khám
+                </span>
+
+                <strong class="doctor-profile-fee">
+                    {% if doctor.fee %}
+                        {{ "{:,.0f}".format(doctor.fee).replace(",", ".") }} VNĐ
+                    {% else %}
+                        Liên hệ
+                    {% endif %}
+                </strong>
+
+                <a href="{{ url_for('select_profile') }}"
+                   class="btn btn-primary">
+                    Đặt lịch khám
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="doctor-detail-grid">
+
+            <!-- Thông tin chuyên môn -->
+            <div class="doctor-detail-main">
+
+                <div class="doctor-detail-card">
+                    <h2 class="doctor-detail-card-title">
+                        Giới thiệu bác sĩ
+                    </h2>
+
+                    {% if doctor.bio %}
+                    <p class="doctor-detail-description">
+                        {{ doctor.bio }}
+                    </p>
+                    {% elif doctor.description %}
+                    <p class="doctor-detail-description">
+                        {{ doctor.description }}
+                    </p>
+                    {% else %}
+                    <p class="doctor-detail-empty-text">
+                        Chưa có thông tin giới thiệu.
+                    </p>
+                    {% endif %}
+                </div>
+
+
+                <div class="doctor-detail-card">
+                    <h2 class="doctor-detail-card-title">
+                        Thông tin chuyên môn
+                    </h2>
+
+                    <div class="doctor-professional-list">
+
+                        <div class="doctor-professional-item">
+                            <span class="professional-label">
+                                Chuyên khoa
+                            </span>
+                            <strong>
+                                {{ doctor.specialization.name }}
+                            </strong>
+                        </div>
+
+                        <div class="doctor-professional-item">
+                            <span class="professional-label">
+                                Số giấy phép hành nghề
+                            </span>
+                            <strong>
+                                {{ doctor.licenseNumber }}
+                            </strong>
+                        </div>
+
+                        <div class="doctor-professional-item">
+                            <span class="professional-label">
+                                Kinh nghiệm
+                            </span>
+                            <strong>
+                                {{ doctor.experienceYrs or 0 }} năm
+                            </strong>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                {% if doctor.description and doctor.bio %}
+                <div class="doctor-detail-card">
+                    <h2 class="doctor-detail-card-title">
+                        Thông tin thêm
+                    </h2>
+
+                    <p class="doctor-detail-description">
+                        {{ doctor.description }}
+                    </p>
+                </div>
+                {% endif %}
+
+            </div>
+
+
+            <!-- Tóm tắt -->
+            <aside class="doctor-detail-sidebar">
+
+                <div class="doctor-detail-card">
+                    <h2 class="doctor-detail-card-title">
+                        Thông tin khám
+                    </h2>
+
+                    <div class="doctor-sidebar-info">
+
+                        {% if doctor.room %}
+                        <div class="doctor-sidebar-row">
+                            <span>Phòng khám</span>
+                            <strong>{{ doctor.room }}</strong>
+                        </div>
+                        {% endif %}
+
+                        <div class="doctor-sidebar-row">
+                            <span>Chuyên khoa</span>
+                            <strong>
+                                {{ doctor.specialization.name }}
+                            </strong>
+                        </div>
+
+                        <div class="doctor-sidebar-row">
+                            <span>Phí khám</span>
+
+                            <strong class="doctor-sidebar-fee">
+                                {% if doctor.fee %}
+                                    {{ "{:,.0f}".format(doctor.fee).replace(",", ".") }} VNĐ
+                                {% else %}
+                                    Liên hệ
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <a href="{{ url_for('select_profile') }}"
+                       class="btn btn-primary doctor-sidebar-button">
+                        Đặt lịch khám
+                    </a>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+
+        <!-- ==================== QB-13: ĐÁNH GIÁ ==================== -->
+        <section class="doctor-review-section">
+
+            <div class="doctor-review-header">
+
+                <div>
+                    <h2>Đánh giá từ bệnh nhân</h2>
+
+                    <p>
+                        Chia sẻ trải nghiệm khám bệnh của các bệnh nhân
+                    </p>
+                </div>
+
+                {% if reviews %}
+                <div class="doctor-review-summary">
+
+                    <strong>
+                        {{ "%.1f"|format(doctor.averageRating or 0) }}
+                    </strong>
+
+                    <div>
+                        <div class="doctor-review-stars">
+                            ★★★★★
+                        </div>
+
+                        <span>
+                            {{ reviews|length }} đánh giá
+                        </span>
+                    </div>
+
+                </div>
+                {% endif %}
+
+            </div>
+
+
+            {% if reviews %}
+
+            <div class="doctor-review-list">
+
+                {% for review in reviews %}
+                <article class="doctor-review-card">
+
+                    <div class="doctor-review-user">
+
+                        <div class="review-user-avatar">
+                            {{ review.author.name.split(' ')[-1][0] }}
+                        </div>
+
+                        <div>
+                            <h3>
+                                {{ review.author.name }}
+                            </h3>
+
+                            <span class="review-date">
+                                {{ review.time.strftime('%d/%m/%Y') }}
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="review-rating">
+                        {% for i in range(1, 6) %}
+                            {% if i <= review.rating %}
+                                <span class="review-star active">★</span>
+                            {% else %}
+                                <span class="review-star">★</span>
+                            {% endif %}
+                        {% endfor %}
+
+                        <strong>
+                            {{ review.rating }}/5
+                        </strong>
+                    </div>
+
+
+                    {% if review.comment %}
+                    <p class="review-comment">
+                        {{ review.comment }}
+                    </p>
+                    {% else %}
+                    <p class="review-comment review-comment-empty">
+                        Bệnh nhân không để lại nhận xét.
+                    </p>
+                    {% endif %}
+
+                </article>
+                {% endfor %}
+
+            </div>
+
+            {% else %}
+
+            <div class="doctor-review-empty">
+
+                <div class="doctor-review-empty-icon">
+                    ★
+                </div>
+
+                <h3>Chưa có đánh giá</h3>
+
+                <p>
+                    Bác sĩ này chưa nhận được đánh giá từ bệnh nhân.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+</section>
+{% endblock %}

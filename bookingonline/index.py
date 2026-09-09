@@ -414,6 +414,22 @@ def doctor_list():
         selected_specialization_id=specialization_id
     )
 
+@app.route("/doctor/<int:doctor_id>")
+@login_required
+def doctor_detail(doctor_id):
+    doctor = dao.get_doctor_detail(doctor_id)
+
+    if not doctor:
+        flash("Không tìm thấy thông tin bác sĩ.", "error")
+        return redirect(url_for("doctor_list"))
+
+    reviews = dao.get_reviews_by_doctor(doctor_id)
+
+    return render_template(
+        "doctor_detail.html",
+        doctor=doctor,
+        reviews=reviews
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

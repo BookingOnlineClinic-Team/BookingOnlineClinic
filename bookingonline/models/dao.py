@@ -327,3 +327,23 @@ def get_doctors(keyword=None, specialization_id=None):
         )
 
     return query.order_by(User.name.asc()).all()
+
+def get_doctor_detail(doctor_id):
+    return (
+        DoctorProfile.query
+        .join(User, DoctorProfile.userId == User.id)
+        .filter(
+            DoctorProfile.id == doctor_id,
+            User.role == UserRoleEnum.DOCTOR,
+            User.active.is_(True)
+        )
+        .first()
+    )
+
+def get_reviews_by_doctor(doctor_id):
+    return (
+        Review.query
+        .filter(Review.doctorId == doctor_id)
+        .order_by(Review.time.desc())
+        .all()
+    )
