@@ -33,14 +33,18 @@ def inject_globals():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
+        if current_user.role == UserRoleEnum.DOCTOR:
+            return redirect(url_for("doctor_profile_detail"))
         return redirect(url_for("select_profile"))
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        user = dao.verify_login(username, password, role=UserRoleEnum.PATIENT)
+        user = dao.verify_login(username, password)
         if user:
             login_user(user)
             flash("Đăng nhập thành công!", "success")
+            if user.role == UserRoleEnum.DOCTOR:
+                return redirect(url_for("doctor_profile_detail"))
             return redirect(url_for("select_profile"))
         flash("Sai tên đăng nhập hoặc mật khẩu.", "error")
     return render_template("login.html", active_page="login")
@@ -119,6 +123,56 @@ def create_profile():
         flash("Tạo hồ sơ khám thành công.", "success")
         return redirect(url_for("select_specialization", profile_id=profile.id))
     return redirect(url_for("select_profile", open_create_modal=1))
+
+@app.route("/patient-profiles/<int:profile_id>", methods=["GET", "PATCH"])
+@login_required
+def patient_profile_detail(profile_id):
+    profile = dao.get_patient_profile_by_owner(profile_id, current_user.id)
+
+    if request.method == "PATCH":
+        if not profile:
+            flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
+            return jsonify(redirect=url_for("select_profile")), 404
+
+        data, errors = utils.validate_patient_profile_form(request.form)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return jsonify(redirect=url_for("patient_profile_detail", profile_id=profile_id)), 400
+
+        dao.update_patient_profile(profile, **data)
+        flash("Cập nhật hồ sơ khám thành công!", "success")
+        return jsonify(redirect=url_for("select_profile"))
+
+    if not profile:
+        flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
+        return redirect(url_for("select_profile"))
+    return render_template("patient_profile_edit.html", active_page="profile", profile=profile)
+
+@app.route("/doctor-profile", methods=["GET", "PATCH"])
+@login_required
+def doctor_profile_detail():
+    if current_user.role != UserRoleEnum.DOCTOR:
+        flash("Chỉ tài khoản bác sĩ mới có hồ sơ bác sĩ.", "error")
+        return redirect(url_for("index"))
+
+    profile = dao.get_doctor_profile_by_user(current_user.id)
+    if not profile:
+        flash("Không tìm thấy hồ sơ bác sĩ của bạn.", "error")
+        return redirect(url_for("index"))
+
+    if request.method == "PATCH":
+        data, errors = utils.validate_doctor_profile_form(request.form)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return jsonify(redirect=url_for("doctor_profile_detail")), 400
+
+        dao.update_doctor_profile(profile, **data)
+        flash("Cập nhật hồ sơ bác sĩ thành công!", "success")
+        return jsonify(redirect=url_for("doctor_profile_detail"))
+
+    return render_template("doctor_profile_edit.html", active_page="doctor-profile", profile=profile)
 
 @app.route("/specializations")
 @login_required

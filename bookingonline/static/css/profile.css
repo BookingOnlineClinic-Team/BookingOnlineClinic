@@ -117,13 +117,19 @@
   background: #FFFFFF;
   border-radius: var(--radius-card);
   border: 2px solid var(--color-border);
-  padding: 24px;
+  padding: 24px 24px 60px;
   position: relative;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
   display: flex;
   flex-direction: column;
+}
+
+.btn-edit-profile {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
 }
 
 .patient-profile-card:hover {

@@ -13,7 +13,7 @@ def get_user_by_username(username, role=None):
         q = q.filter_by(role=role)
     return q.first()
 
-def verify_login(username, password, role=UserRoleEnum.PATIENT):
+def verify_login(username, password, role=None):
     user = get_user_by_username(username, role)
     if user and user.password == password:
         return user
@@ -70,6 +70,19 @@ def get_doctors_by_specialization(specialization_id):
 
 def get_doctor_by_id(doctor_id):
     return DoctorProfile.query.get(doctor_id)
+
+def get_doctor_profile_by_user(user_id):
+    return DoctorProfile.query.filter_by(userId=user_id).first()
+
+def update_doctor_profile(profile, license_number, experience_yrs, fee, description=None, bio=None, avatar_url=None):
+    profile.licenseNumber = license_number
+    profile.experienceYrs = experience_yrs
+    profile.fee = fee
+    profile.description = description
+    profile.bio = bio
+    profile.avatarUrl = avatar_url
+    db.session.commit()
+    return profile
 
 def get_available_work_schedules(doctor_id):
     today = date.today()
@@ -192,6 +205,22 @@ def create_patient_profile(owner, name, phone, gender=None, date_of_birth=None, 
         address=address,
     )
     db.session.add(profile)
+    db.session.commit()
+    return profile
+
+def get_patient_profile_by_owner(profile_id, user_id):
+    return (
+        PatientHealthProfile.query
+        .filter(PatientHealthProfile.id == profile_id, PatientHealthProfile.userId == user_id)
+        .first()
+    )
+
+def update_patient_profile(profile, name, phone, gender=None, date_of_birth=None, address=None):
+    profile.name = name
+    profile.phone = phone
+    profile.gender = gender
+    profile.dateOfBirth = date_of_birth
+    profile.address = address
     db.session.commit()
     return profile
 

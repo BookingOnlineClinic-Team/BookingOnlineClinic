@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Sửa Hồ Sơ Khám - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container" style="max-width: 640px;">
+
+    <div class="profile-header-group">
+      <h1 class="section-title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <span>Sửa Hồ Sơ Khám</span>
+      </h1>
+      <p class="section-subtitle">Cập nhật thông tin hồ sơ của {{ profile.name }}.</p>
+    </div>
+
+    <form id="editProfileForm">
+      <div class="form-group">
+        <label class="form-label" for="name">Họ và tên bệnh nhân <span class="required">*</span></label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ profile.name }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">Số điện thoại liên hệ <span class="required">*</span></label>
+        <input type="tel" name="phone" id="phone" class="form-control" value="{{ profile.phone }}" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label" for="gender">Giới tính</label>
+          {% set g = profile.gender.name if profile.gender else '' %}
+          <select name="gender" id="gender" class="form-control">
+            <option value="" {% if g == '' %}selected{% endif %}>-- Không chọn --</option>
+            <option value="MALE" {% if g == 'MALE' %}selected{% endif %}>Nam</option>
+            <option value="FEMALE" {% if g == 'FEMALE' %}selected{% endif %}>Nữ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="date_of_birth">Ngày sinh</label>
+          <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" value="{{ profile.dateOfBirth or '' }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="address">Địa chỉ thường trú</label>
+        <input type="text" name="address" id="address" class="form-control" value="{{ profile.address or '' }}">
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <a href="{{ url_for('select_profile') }}" class="btn btn-secondary">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary" id="btn-save-profile">Lưu thay đổi</button>
+      </div>
+    </form>
+
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('editProfileForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var body = new URLSearchParams(new FormData(e.target));
+    fetch("{{ url_for('patient_profile_detail', profile_id=profile.id) }}", {
+      method: 'PATCH',
+      body: body
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) { window.location.href = data.redirect; })
+      .catch(function () { alert('Có lỗi xảy ra, vui lòng thử lại.'); });
+  });
+</script>
+{% endblock %}
