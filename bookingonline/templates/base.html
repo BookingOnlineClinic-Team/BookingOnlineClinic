@@ -1,206 +1,320 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Giao diện đặt lịch khám bệnh trực tuyến chuẩn UC01 cho phòng khám tư nhân, phong cách Medpro hiện đại với Flask, Jinja2 và HTML/CSS.">
-  <meta property="og:title" content="Phòng Khám Đa Khoa OU - Đặt Lịch Khám Trực Tuyến">
-  <meta property="og:description" content="Giao diện đặt lịch khám bệnh trực tuyến chuẩn UC01 cho phòng khám tư nhân, phong cách Medpro hiện đại với Flask, Jinja2 và HTML/CSS.">
-  <title>{% block title %}Phòng Khám Đa Khoa OU - Đặt Lịch Khám Trực Tuyến{% endblock %}</title>
-  
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
-  
-  {% block extra_css %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Giao diện đặt lịch khám bệnh trực tuyến chuẩn UC01 cho phòng khám tư nhân, phong cách Medpro hiện đại với Flask, Jinja2 và HTML/CSS.">
+    <meta property="og:title" content="Phòng Khám Đa Khoa OU - Đặt Lịch Khám Trực Tuyến">
+    <meta property="og:description"
+          content="Giao diện đặt lịch khám bệnh trực tuyến chuẩn UC01 cho phòng khám tư nhân, phong cách Medpro hiện đại với Flask, Jinja2 và HTML/CSS.">
+    <title>{% block title %}Phòng Khám Đa Khoa OU - Đặt Lịch Khám Trực Tuyến{% endblock %}</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <!-- bichnhu -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+    <!-- bichnhu -->
+    {% block extra_css %}{% endblock %}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
 </head>
 <body class="{% block body_class %}{% endblock %}">
-  <header class="site-header" id="site-header">
+<header class="site-header" id="site-header">
     <div class="navbar-container">
-      <a href="{{ url_for('index') }}" class="nav-brand" id="brand-logo-link">
-        <div class="brand-icon-wrapper">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 4v16"></path>
-            <path d="M4 12h16"></path>
-          </svg>
-        </div>
-        <div class="brand-text-group">
-          <span class="brand-title">Phòng Khám OU</span>
-          <span class="brand-subtitle">OU Medical Clinic</span>
-        </div>
-      </a>
-      <nav class="nav-menu" id="nav-menu">
-        <a href="{{ url_for('select_profile') }}" class="nav-link {% if active_page == 'schedule' %}active{% endif %}" id="nav-booking">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span>Đặt lịch</span>
-        </a>
-        <a href="{{ url_for('my_appointments') }}" class="nav-link {% if active_page == 'appointments' %}active{% endif %}" id="nav-appointments">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span>Cuộc hẹn</span>
-        </a>
-        <a href="{{ url_for('select_profile') }}" class="nav-link {% if active_page == 'profile' %}active{% endif %}" id="nav-profile">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span>Hồ sơ bệnh nhân</span>
-        </a>
-        <a href="{{ url_for('doctor_list') }}" class="nav-link" id="nav-doctors">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></svg>
-          <span>Các bác sĩ</span>
-        </a>
-        <a href="{{ url_for('index') }}#chatbot" class="nav-link" id="nav-chatbot">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          <span>Chatbot</span>
-        </a>
-      </nav>
-      <div class="nav-actions">
-        <button type="button" class="btn-notification" id="btn-notification" title="Thông báo mới">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          {% if unread_notification_count and unread_notification_count > 0 %}
-          <span class="badge-dot" title="{{ unread_notification_count }} thông báo chưa đọc"></span>
-          {% endif %}
-        </button>
-        {% if current_user.is_authenticated %}
-        <div class="user-profile-wrapper">
-          <button type="button" class="user-btn" id="user-profile-btn">
-            <div class="user-avatar">{{ current_user.name.split(' ')[-1][0] if current_user.name else 'BN' }}</div>
-            <div class="user-name-text">
-              <div>{{ current_user.name }}</div>
-              <div class="user-role-text">Bệnh nhân</div>
+        <a href="{{ url_for('index') }}" class="nav-brand" id="brand-logo-link">
+            <div class="brand-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 4v16"></path>
+                    <path d="M4 12h16"></path>
+                </svg>
             </div>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="dropdown-menu" id="user-profile-menu">
-            <a href="{{ url_for('select_profile') }}" class="dropdown-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span>Hồ sơ sức khỏe</span>
-            </a>
-            <a href="{{ url_for('my_appointments') }}" class="dropdown-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
-              <span>Lịch hẹn của tôi</span>
-            </a>
-            <a href="{{ url_for('logout') }}" class="dropdown-item" style="color: var(--color-error);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-              <span>Đăng xuất</span>
-            </a>
-          </div>
-        </div>
-        <a href="{{ url_for('logout') }}" class="btn-logout" title="Đăng xuất khỏi hệ thống">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          <span>Đăng xuất</span>
+            <div class="brand-text-group">
+                <span class="brand-title">Phòng Khám OU</span>
+                <span class="brand-subtitle">OU Medical Clinic</span>
+            </div>
         </a>
-        {% else %}
-        <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Đăng nhập</a>
-        {% endif %}
-        <button type="button" class="btn-mobile-toggle" id="btn-mobile-toggle" aria-label="Mở menu">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-      </div>
+        <nav class="nav-menu" id="nav-menu">
+            <a href="{{ url_for('select_profile') }}"
+               class="nav-link {% if active_page == 'schedule' %}active{% endif %}" id="nav-booking">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Đặt lịch</span>
+            </a>
+            <a href="{{ url_for('my_appointments') }}"
+               class="nav-link {% if active_page == 'appointments' %}active{% endif %}" id="nav-appointments">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Cuộc hẹn</span>
+            </a>
+            <a href="{{ url_for('select_profile') }}"
+               class="nav-link {% if active_page == 'profile' %}active{% endif %}" id="nav-profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Hồ sơ bệnh nhân</span>
+            </a>
+            <a href="{{ url_for('doctor_list') }}" class="nav-link" id="nav-doctors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+                    <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+                    <circle cx="20" cy="10" r="2"></circle>
+                </svg>
+                <span>Các bác sĩ</span>
+            </a>
+            <a href="{% if current_user.is_authenticated %}#{% else %}{{ url_for('login') }}{% endif %}" class="nav-link" id="nav-chatbot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Chatbot</span>
+            </a>
+        </nav>
+        <div class="nav-actions">
+            <button type="button" class="btn-notification" id="btn-notification" title="Thông báo mới">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {% if unread_notification_count and unread_notification_count > 0 %}
+                <span class="badge-dot" title="{{ unread_notification_count }} thông báo chưa đọc"></span>
+                {% endif %}
+            </button>
+            {% if current_user.is_authenticated %}
+            <div class="user-profile-wrapper">
+                <button type="button" class="user-btn" id="user-profile-btn">
+                    <div class="user-avatar">{{ current_user.name.split(' ')[-1][0] if current_user.name else 'BN' }}
+                    </div>
+                    <div class="user-name-text">
+                        <div>{{ current_user.name }}</div>
+                        <div class="user-role-text">Bệnh nhân</div>
+                    </div>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="dropdown-menu" id="user-profile-menu">
+                    <a href="{{ url_for('select_profile') }}" class="dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Hồ sơ sức khỏe</span>
+                    </a>
+                    <a href="{{ url_for('my_appointments') }}" class="dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                        </svg>
+                        <span>Lịch hẹn của tôi</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item" style="color: var(--color-error);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Đăng xuất</span>
+                    </a>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-logout" title="Đăng xuất khỏi hệ thống">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Đăng xuất</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Đăng nhập</a>
+            {% endif %}
+            <button type="button" class="btn-mobile-toggle" id="btn-mobile-toggle" aria-label="Mở menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
     </div>
-  </header>
-  <div class="flash-container">
+</header>
+<div class="flash-container">
     {% set messages = get_flashed_messages(with_categories=true) %}
     {% if messages and messages|length > 0 %}
-      {% for category, message in messages %}
-        <div class="flash-message {{ category }}">
-          {% if category == 'error' or category == 'danger' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-          {% elif category == 'success' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          {% elif category == 'warning' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-          {% else %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          {% endif %}
-          <span>{{ message }}</span>
-          <button type="button" class="flash-close" aria-label="Đóng">&times;</button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  </div>
-  <main class="main-content">
-    {% block content %}{% endblock %}
-  </main>
-  {% block modals %}{% endblock %}
-  <div id="toast-container"></div>
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="logo-row">
-            <div class="logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16"></path><path d="M4 12h16"></path></svg>
-            </div>
-            <div class="clinic-name">Phòng Khám Đa Khoa OU</div>
-          </div>
-          <p>
-            Hệ thống đặt lịch khám trực tuyến hàng đầu phục vụ bệnh nhân khám chuyên khoa, tư vấn sức khỏe tận tâm với đội ngũ y bác sĩ đầu ngành.
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-btn" aria-label="Facebook">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-            </a>
-            <a href="#" class="social-btn" aria-label="Youtube">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-            </a>
-            <a href="#" class="social-btn" aria-label="Phone hotline">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            </a>
-          </div>
-        </div>
-        <div class="footer-col">
-          <div class="footer-heading">Dịch vụ đặt khám</div>
-          <ul class="footer-links">
-            <li><a href="{{ url_for('select_profile') }}">Đặt khám theo bác sĩ</a></li>
-            <li><a href="{{ url_for('select_profile') }}">Khám chuyên khoa</a></li>
-            <li><a href="{{ url_for('select_profile') }}">Khám sức khỏe tổng quát</a></li>
-            <li><a href="{{ url_for('my_appointments') }}">Tra cứu phiếu hẹn</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <div class="footer-heading">Thời gian làm việc</div>
-          <div class="footer-contact-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            <div>
-              <strong>Thứ 2 - Thứ 7:</strong><br>07:30 - 20:00
-            </div>
-          </div>
-          <div class="footer-contact-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            <div>
-              <strong>Chủ Nhật:</strong><br>07:30 - 12:00
-            </div>
-          </div>
-        </div>
-        <div class="footer-col">
-          <div class="footer-heading">Liên hệ phòng khám</div>
-          <div class="footer-contact-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <span>123 Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh</span>
-          </div>
-          <div class="footer-contact-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            <span>Hotline: <strong>1900 6868</strong> (Cước 1.000đ/phút)</span>
-          </div>
-          <div class="footer-contact-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            <span>cskh@phongkhamankhang.vn</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <div>&copy; 2026 Phòng Khám Đa Khoa OU</div>
-        <div>Giấy phép hoạt động khám chữa bệnh số 04512/HCM-GPHĐ cấp bởi Sở Y tế TP.HCM</div>
-      </div>
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">
+        {% if category == 'error' or category == 'danger' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        {% elif category == 'success' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        {% elif category == 'warning' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        {% else %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        {% endif %}
+        <span>{{ message }}</span>
+        <button type="button" class="flash-close" aria-label="Đóng">&times;</button>
     </div>
-  </footer>
+    {% endfor %}
+    {% endif %}
+</div>
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+{% block modals %}{% endblock %}
+<!-- bichnhu -->
+{% include "chatbot.html" %}
+<!-- bichnhu -->
+<div id="toast-container"></div>
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo-row">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5">
+                            <path d="M12 4v16"></path>
+                            <path d="M4 12h16"></path>
+                        </svg>
+                    </div>
+                    <div class="clinic-name">Phòng Khám Đa Khoa OU</div>
+                </div>
+                <p>
+                    Hệ thống đặt lịch khám trực tuyến hàng đầu phục vụ bệnh nhân khám chuyên khoa, tư vấn sức khỏe tận
+                    tâm với đội ngũ y bác sĩ đầu ngành.
+                </p>
+                <div class="social-links">
+                    <a href="#" class="social-btn" aria-label="Facebook">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-btn" aria-label="Youtube">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-btn" aria-label="Phone hotline">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Dịch vụ đặt khám</div>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('select_profile') }}">Đặt khám theo bác sĩ</a></li>
+                    <li><a href="{{ url_for('select_profile') }}">Khám chuyên khoa</a></li>
+                    <li><a href="{{ url_for('select_profile') }}">Khám sức khỏe tổng quát</a></li>
+                    <li><a href="{{ url_for('my_appointments') }}">Tra cứu phiếu hẹn</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Thời gian làm việc</div>
+                <div class="footer-contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <div>
+                        <strong>Thứ 2 - Thứ 7:</strong><br>07:30 - 20:00
+                    </div>
+                </div>
+                <div class="footer-contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <div>
+                        <strong>Chủ Nhật:</strong><br>07:30 - 12:00
+                    </div>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Liên hệ phòng khám</div>
+                <div class="footer-contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>123 Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh</span>
+                </div>
+                <div class="footer-contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <span>Hotline: <strong>1900 6868</strong> (Cước 1.000đ/phút)</span>
+                </div>
+                <div class="footer-contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span>cskh@phongkhamankhang.vn</span>
+                </div>
+            </div>
+        </div>
 
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+        <div class="footer-bottom">
+            <div>&copy; 2026 Phòng Khám Đa Khoa OU</div>
+            <div>Giấy phép hoạt động khám chữa bệnh số 04512/HCM-GPHĐ cấp bởi Sở Y tế TP.HCM</div>
+        </div>
+    </div>
+</footer>
 
-  {% block extra_js %}{% endblock %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+<!-- bichnhu -->
+{% if current_user.is_authenticated %}
+<script>
+    window.CHATBOT_CONFIG = {
+      initUrl: "{{ url_for('chatbot_init') }}",
+      analyzeUrl: "{{ url_for('chatbot_analyze') }}",
+      manualSpecializationUrl: "{{ url_for('chatbot_manual_specialization') }}",
+      scheduleUrl: "{{ url_for('appointment_schedule') }}",
+      specializationsUrl: "{{ url_for('select_specialization') }}",
+      // Hồ sơ bệnh nhân mặc định (nếu chưa có hồ sơ nào, Chatbot sẽ điều hướng sang bước tạo/chọn hồ sơ trước)
+      profileId: {{ chatbot_default_profile_id if chatbot_default_profile_id else 'null' }},
+      selectProfileUrl: "{{ url_for('select_profile') }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endif %}
+<!-- bichnhu -->
+
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

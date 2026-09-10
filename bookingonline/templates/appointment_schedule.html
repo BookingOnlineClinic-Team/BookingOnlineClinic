@@ -40,6 +40,11 @@
       <input type="hidden" name="profile_id" value="{{ profile.id }}">
       <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
       <input type="hidden" name="override_conflict" id="override-conflict-input" value="0">
+      <!-- bichnhu -->
+      {% if chatbot_suggestion_id %}
+      <input type="hidden" name="chatbot_suggestion_id" value="{{ chatbot_suggestion_id }}">
+      {% endif %}
+      <!-- bichnhu -->
 
       <div class="schedule-grid-container">
         <div class="booking-flow-column">
@@ -68,15 +73,20 @@
             {% else %}
             <div class="date-pills-list">
               {% for d in dates %}
-              <button type="button" class="date-pill-btn {% if loop.first %}active{% endif %}" data-date="{{ d.iso }}">
+              <!-- bichnhu -->
+              {% set is_active = (pending_date and pending_date == d.iso) or (not pending_date and loop.first) %}
+              <button type="button" class="date-pill-btn {% if is_active %}active{% endif %}" data-date="{{ d.iso }}">
+              <!-- bichnhu -->
                 <span class="date-day-name">{{ d.label_day }}</span>
                 <span class="date-day-num">{{ d.label_date }}</span>
               </button>
               {% endfor %}
             </div>
             {% for d in dates %}
-            <div class="slots-date-group" data-date-group="{{ d.iso }}" style="{% if not loop.first %}display:none;{% endif %} margin-top: 18px;">
-
+            <!-- bichnhu -->
+            {% set is_active = (pending_date and pending_date == d.iso) or (not pending_date and loop.first) %}
+            <div class="slots-date-group" data-date-group="{{ d.iso }}" style="{% if not is_active %}display:none;{% endif %} margin-top: 18px;">
+            <!-- bichnhu -->
               {% if d.morning %}
               <div class="slots-group-header">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
