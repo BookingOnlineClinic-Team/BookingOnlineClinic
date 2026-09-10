@@ -330,3 +330,162 @@ def get_notifications_by_user(user_id, limit=10):
 
 def get_appointment_by_id(appointment_id):
     return Appointment.query.get(appointment_id)
+
+#--------------------ThaiHe---------------------
+def get_doctors(keyword=None, specialization_id=None):
+    query = (
+        DoctorProfile.query
+        .join(User, DoctorProfile.userId == User.id)
+        .filter(
+            User.role == UserRoleEnum.DOCTOR,
+            User.active.is_(True)
+        )
+    )
+
+    if keyword:
+        keyword = keyword.strip()
+
+        if keyword:
+            query = query.filter(
+                User.name.ilike(f"%{keyword}%")
+            )
+
+    if specialization_id:
+        query = query.filter(
+            DoctorProfile.specializationId == specialization_id
+        )
+
+    return query.order_by(User.name.asc()).all()
+
+def get_doctor_detail(doctor_id):
+    return (
+        DoctorProfile.query
+        .join(User, DoctorProfile.userId == User.id)
+        .filter(
+            DoctorProfile.id == doctor_id,
+            User.role == UserRoleEnum.DOCTOR,
+            User.active.is_(True)
+        )
+        .first()
+    )
+
+def get_reviews_by_doctor(doctor_id):
+    return (
+        Review.query
+        .filter(Review.doctorId == doctor_id)
+        .order_by(Review.time.desc())
+        .all()
+    )
+
+# Chatbot - bichnhu
+WEEKDAY_CODE = {
+    0: "MONDAY", 1: "TUESDAY", 2: "WEDNESDAY", 3: "THURSDAY",
+    4: "FRIDAY", 5: "SATURDAY", 6: "SUNDAY",
+}
+
+def get_allowed_booking_dates(days_ahead=14):
+    #các ngày được phép đặt lịch, dựa trên ngày làm việc
+    #của phòng khám (SystemConfig.workingDays) và thời gian đặt tối thiểu.
+    config = get_system_config()
+    working_days = set(config.workingDaysList())
+    today = date.today()
+    now = datetime.now()
+    result = []
+    for i in range(days_ahead):
+        d = today + timedelta(days=i)
+        if WEEKDAY_CODE[d.weekday()] not in working_days:
+            continue
+        if d == today:
+            end_of_day = datetime.combine(d, config.afternoonEndTime)
+            if now + timedelta(minutes=config.minimumBookingTime) >= end_of_day:
+                continue
+        result.append(d)
+    return result
+
+
+def get_specializations_brief():
+    #Danh sách chuyên khoa (id, tên, mô tả) để đưa vào ngữ cảnh cho AI phân loại.
+    return [
+        {"id": s.id, "name": s.name, "description": s.description or ""}
+        for s in get_all_specializations()
+    ]
+
+
+def get_available_slots_for_doctor_on_date(doctor_id, work_date, slot_minutes=30):
+    #lọc theo 1 ngày cụ thể
+    #(dùng cho chatbot vì bệnh nhân đã chọn ngày trước khi mô tả triệu chứng).
+    blocks = get_work_schedules_for_doctor_on_date(doctor_id, work_date)
+    booked_times = get_booked_times_for_doctor_date(doctor_id, work_date)
+    slots = []
+    for block in blocks:
+        if not block.isAvailable:
+            continue
+        for start_t, end_t in split_time_range(block.startTime, block.endTime, slot_minutes):
+            if start_t in booked_times:
+                continue
+            slots.append({
+                "work_schedule_id": block.id,
+                "work_date": block.workDate,
+                "session": block.session,
+                "start": start_t,
+                "end": end_t,
+            })
+    return slots
+
+
+def get_doctors_with_slots_by_specialization_on_date(
+    specialization_id, work_date, slot_minutes=30, doctor_limit=5, slot_limit=8
+):
+    #tra cứu bác sĩ thuộc chuyên khoa + khung giờ trống trong ngày đã chọn.
+    doctors = get_doctors_by_specialization(specialization_id)
+    result = []
+    for d in doctors:
+        slots = get_available_slots_for_doctor_on_date(d.id, work_date, slot_minutes)
+        if not slots:
+            continue
+        result.append({"doctor": d, "slots": slots[:slot_limit]})
+    result.sort(key=lambda x: (x["doctor"].averageRating or 0), reverse=True)
+    return result[:doctor_limit]
+
+
+def create_chatbot_session(user, query_text, booked_date, specialization_id=None, ai_requirements=None):
+    session = ChatbotSession(
+        userId=user.id,
+        queryText=query_text,
+        bookedDate=booked_date,
+        specializationId=specialization_id,
+        aiRequirements=ai_requirements,
+    )
+    db.session.add(session)
+    db.session.commit()
+    return session
+
+
+def update_chatbot_session_specialization(session, specialization_id, ai_requirements=None):
+    session.specializationId = specialization_id
+    if ai_requirements is not None:
+        session.aiRequirements = ai_requirements
+    db.session.commit()
+    return session
+
+
+def add_chatbot_doctor_suggestion(session_id, doctor_id, available_date, start_time, end_time, reason=None):
+    suggestion = ChatbotDoctorSuggestion(
+        sessionId=session_id,
+        doctorId=doctor_id,
+        availableDate=available_date,
+        startTime=start_time,
+        endTime=end_time,
+        reason=reason,
+    )
+    db.session.add(suggestion)
+    db.session.commit()
+    return suggestion
+
+
+def get_chatbot_session_by_id(session_id):
+    return ChatbotSession.query.get(session_id)
+
+
+def get_chatbot_suggestion_by_id(suggestion_id):
+    return ChatbotDoctorSuggestion.query.get(suggestion_id)
