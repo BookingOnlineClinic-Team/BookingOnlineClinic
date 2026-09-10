@@ -502,7 +502,7 @@ def chatbot_init():
     })
 
 
-@app.route("/api/chatbot/analyze", methods=["POST"])
+@app.route("/chatbot/analyze", methods=["POST"])
 @login_required
 def chatbot_analyze():
     # nhận triệu chứng + ngày khám, gọi Gemini xác định chuyên khoa,
@@ -521,7 +521,7 @@ def chatbot_analyze():
 
     specializations = dao.get_specializations_brief()
 
-    # Luồng ngoại lệ: lỗi khi phân tích triệu chứng (gọi Gemini thất bại)
+    # lỗi khi phân tích triệu chứng (gọi Gemini thất bại)
     try:
         ai_result = classify_specialization(symptom_text, specializations)
     except GeminiServiceError:
@@ -606,7 +606,7 @@ def chatbot_analyze():
     })
 
 
-@app.route("/api/chatbot/manual-specialization", methods=["POST"])
+@app.route("/chatbot/manual-specialization", methods=["POST"])
 @login_required
 def chatbot_manual_specialization():
     #bệnh nhân tự chọn chuyên khoa khi Chatbot không nhận diện được.
