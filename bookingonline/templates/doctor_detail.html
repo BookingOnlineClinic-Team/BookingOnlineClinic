@@ -232,6 +232,215 @@
 
         </div>
 
+                <!-- ==================== QB-24: LỊCH LÀM VIỆC ==================== -->
+        <section class="doctor-patient-schedule-section">
+
+            <div class="doctor-patient-schedule-header">
+
+                <div>
+                    <h2>Lịch làm việc của bác sĩ</h2>
+
+                    <p>
+                        Xem lịch làm việc theo tuần để lựa chọn
+                        thời gian khám phù hợp.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('select_profile') }}"
+                   class="btn btn-primary">
+                    Đặt lịch khám
+                </a>
+
+            </div>
+
+
+            <!-- Điều hướng tuần -->
+            <div class="doctor-patient-week-navigation">
+
+                <a href="{{ url_for(
+                            'doctor_detail',
+                            doctor_id=doctor.id,
+                            week=previous_week.isoformat()
+                        ) }}"
+                   class="doctor-patient-week-button">
+                    ← Tuần trước
+                </a>
+
+
+                <div class="doctor-patient-week-current">
+
+                    <span>Tuần đang xem</span>
+
+                    <strong>
+                        {{ week_start.strftime('%d/%m/%Y') }}
+                        -
+                        {{ week_end.strftime('%d/%m/%Y') }}
+                    </strong>
+
+                </div>
+
+
+                {% if can_go_next %}
+
+                <a href="{{ url_for(
+                            'doctor_detail',
+                            doctor_id=doctor.id,
+                            week=next_week.isoformat()
+                        ) }}"
+                   class="doctor-patient-week-button">
+                    Tuần sau →
+                </a>
+
+                {% else %}
+
+                <span class="doctor-patient-week-button disabled">
+                    Tuần sau →
+                </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- Giờ làm việc chung -->
+            <div class="doctor-patient-clinic-hours">
+
+                <div>
+                    <span>Ca sáng</span>
+
+                    <strong>
+                        {{ config.morningStartTime.strftime('%H:%M') }}
+                        -
+                        {{ config.morningEndTime.strftime('%H:%M') }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Ca chiều</span>
+
+                    <strong>
+                        {{ config.afternoonStartTime.strftime('%H:%M') }}
+                        -
+                        {{ config.afternoonEndTime.strftime('%H:%M') }}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <!-- Lịch 7 ngày -->
+            <div class="doctor-patient-schedule-grid">
+
+                {% for day in week_days %}
+
+                <article class="doctor-patient-day-card
+                    {% if day.date == today %}today{% endif %}">
+
+                    <div class="doctor-patient-day-header">
+
+                        <span>
+                            {% if day.date.weekday() == 0 %}
+                                Thứ Hai
+                            {% elif day.date.weekday() == 1 %}
+                                Thứ Ba
+                            {% elif day.date.weekday() == 2 %}
+                                Thứ Tư
+                            {% elif day.date.weekday() == 3 %}
+                                Thứ Năm
+                            {% elif day.date.weekday() == 4 %}
+                                Thứ Sáu
+                            {% elif day.date.weekday() == 5 %}
+                                Thứ Bảy
+                            {% else %}
+                                Chủ Nhật
+                            {% endif %}
+                        </span>
+
+                        <strong>
+                            {{ day.date.strftime('%d/%m') }}
+                        </strong>
+
+                        {% if day.date == today %}
+                        <small>Hôm nay</small>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="doctor-patient-day-body">
+
+                        <!-- Ca sáng -->
+                        <div class="doctor-patient-session">
+
+                            <div class="doctor-patient-session-title">
+                                <span>☀</span>
+                                <strong>Ca sáng</strong>
+                            </div>
+
+                            {% if day.morning
+                                  and day.morning.isAvailable %}
+
+                            <div class="doctor-patient-session-time">
+                                {{ day.morning.startTime.strftime('%H:%M') }}
+                                -
+                                {{ day.morning.endTime.strftime('%H:%M') }}
+                            </div>
+
+                            <span class="doctor-patient-working-badge">
+                                Làm việc
+                            </span>
+
+                            {% else %}
+
+                            <span class="doctor-patient-off-badge">
+                                Nghỉ
+                            </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- Ca chiều -->
+                        <div class="doctor-patient-session">
+
+                            <div class="doctor-patient-session-title">
+                                <span>☀</span>
+                                <strong>Ca chiều</strong>
+                            </div>
+
+                            {% if day.afternoon
+                                  and day.afternoon.isAvailable %}
+
+                            <div class="doctor-patient-session-time">
+                                {{ day.afternoon.startTime.strftime('%H:%M') }}
+                                -
+                                {{ day.afternoon.endTime.strftime('%H:%M') }}
+                            </div>
+
+                            <span class="doctor-patient-working-badge">
+                                Làm việc
+                            </span>
+
+                            {% else %}
+
+                            <span class="doctor-patient-off-badge">
+                                Nghỉ
+                            </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
 
         <!-- ==================== QB-13: ĐÁNH GIÁ ==================== -->
         <section class="doctor-review-section">

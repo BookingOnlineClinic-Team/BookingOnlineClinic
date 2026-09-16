@@ -502,15 +502,85 @@ def doctor_detail(doctor_id):
     doctor = dao.get_doctor_detail(doctor_id)
 
     if not doctor:
-        flash("Không tìm thấy thông tin bác sĩ.", "error")
+        flash(
+            "Không tìm thấy thông tin bác sĩ.",
+            "error"
+        )
         return redirect(url_for("doctor_list"))
 
     reviews = dao.get_reviews_by_doctor(doctor_id)
 
+    today = date.today()
+
+    current_week_start = dao.get_week_start(today)
+
+    max_week_start = (
+        current_week_start
+        + timedelta(days=7)
+    )
+
+    week_param = request.args.get(
+        "week",
+        ""
+    ).strip()
+
+    if week_param:
+        try:
+            target_date = datetime.strptime(
+                week_param,
+                "%Y-%m-%d"
+            ).date()
+
+        except ValueError:
+            target_date = today
+    else:
+        target_date = today
+
+    week_start = dao.get_week_start(
+        target_date
+    )
+
+    if week_start > max_week_start:
+        week_start = max_week_start
+
+    week_end = (
+        week_start
+        + timedelta(days=6)
+    )
+
+    week_days = dao.build_doctor_week_schedule(
+        doctor.id,
+        week_start
+    )
+
+    previous_week = (
+        week_start
+        - timedelta(days=7)
+    )
+
+    next_week = (
+        week_start
+        + timedelta(days=7)
+    )
+
+    config = dao.get_system_config()
+
     return render_template(
         "doctor_detail.html",
+
         doctor=doctor,
-        reviews=reviews
+        reviews=reviews,
+        week_days=week_days,
+        week_start=week_start,
+        week_end=week_end,
+        previous_week=previous_week,
+        next_week=next_week,
+        can_go_previous=True,
+        can_go_next=(
+            week_start < max_week_start
+        ),
+        config=config,
+        today=today
     )
 
 @app.route("/doctor/work-schedule")
