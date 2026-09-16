@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Cấu hình lịch làm việc - Phòng Khám Đa Khoa OU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="doctor-work-schedule-section">
+    <div class="container">
+        <div class="doctor-work-schedule-header">
+            <div>
+                <div class="doctor-work-schedule-eyebrow">QUẢN LÝ LỊCH LÀM VIỆC</div>
+                <h1 class="section-title">Cấu hình lịch tuần kế tiếp</h1>
+                <p class="section-subtitle">Chọn các ca làm việc trong phạm vi lịch chuẩn của phòng khám.</p>
+            </div>
+
+            <div class="doctor-work-schedule-profile">
+                <div class="doctor-work-schedule-avatar">
+                    {{ doctor.user.name.split(' ')[-1][0] if doctor.user and doctor.user.name else 'B' }}
+                </div>
+                <div>
+                    <div class="doctor-work-schedule-name">{{ doctor.user.name }}</div>
+                    <div class="doctor-work-schedule-specialty">{{ doctor.specialization.name }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="doctor-config-topbar">
+            <a href="{{ url_for('doctor_work_schedule') }}" class="btn btn-outline btn-sm">← Xem lịch làm việc</a>
+
+            <div class="doctor-week-current doctor-config-week-current">
+                <div class="doctor-week-label">TUẦN ĐƯỢC CẤU HÌNH</div>
+                <div class="doctor-week-range">{{ week_start.strftime('%d/%m/%Y') }} - {{ week_end.strftime('%d/%m/%Y') }}</div>
+            </div>
+        </div>
+
+        <div class="doctor-work-time-summary">
+            <div class="doctor-work-time-summary-content">
+                <div class="doctor-work-time-title">Lịch chuẩn của phòng khám</div>
+                <div class="doctor-work-time-list">
+                    <div class="doctor-work-time-item">
+                        <span class="doctor-session-dot morning"></span>
+                        <span>Ca sáng: <strong>{{ config.morningStartTime.strftime('%H:%M') }} - {{ config.morningEndTime.strftime('%H:%M') }}</strong></span>
+                    </div>
+                    <div class="doctor-work-time-item">
+                        <span class="doctor-session-dot afternoon"></span>
+                        <span>Ca chiều: <strong>{{ config.afternoonStartTime.strftime('%H:%M') }} - {{ config.afternoonEndTime.strftime('%H:%M') }}</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="doctor-config-guide">
+            <div>
+                <strong>Chọn ca làm việc</strong>
+                <span>Mỗi ngày có tối đa 2 ca. Những ngày phòng khám nghỉ không thể cấu hình.</span>
+            </div>
+            <div class="doctor-config-legend">
+                <span class="doctor-config-legend-item active"><i></i>Đã chọn</span>
+                <span class="doctor-config-legend-item off"><i></i>Không làm</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('doctor_work_schedule_config') }}" id="doctorScheduleConfigForm">
+            {% set weekday_names = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'] %}
+
+            <div class="doctor-config-week-grid">
+                {% for day in week_days %}
+                    {% set day_code = weekday_code.get(day.date.weekday()) %}
+                    {% set clinic_closed = day_code not in working_days %}
+
+                    <article class="doctor-config-day-card {% if clinic_closed %}clinic-closed{% endif %}">
+                        <div class="doctor-config-day-header">
+                            <div>
+                                <div class="doctor-config-day-name">{{ weekday_names[loop.index0] }}</div>
+                                <div class="doctor-config-day-date">{{ day.date.strftime('%d/%m/%Y') }}</div>
+                            </div>
+                            {% if clinic_closed %}<span class="doctor-closed-badge">Phòng khám nghỉ</span>{% endif %}
+                        </div>
+
+                        {% if clinic_closed %}
+                            <div class="doctor-config-closed-state">
+                                <strong>Không thể cấu hình</strong>
+                                <span>Ngày này không thuộc lịch làm việc chuẩn của phòng khám.</span>
+                            </div>
+                        {% else %}
+                            <label class="doctor-config-session {% if day.morning and day.morning.isAvailable %}selected{% endif %}">
+                                <input type="checkbox" name="sessions" value="{{ day.date.isoformat() }}_MORNING"
+                                       {% if day.morning and day.morning.isAvailable %}checked{% endif %}>
+                                <span class="doctor-config-session-check">✓</span>
+                                <span class="doctor-config-session-icon morning">☀</span>
+                                <span class="doctor-config-session-info">
+                                    <span class="doctor-config-session-name">Ca sáng</span>
+                                    <span class="doctor-config-session-time">{{ config.morningStartTime.strftime('%H:%M') }} - {{ config.morningEndTime.strftime('%H:%M') }}</span>
+                                    <span class="doctor-config-session-state">{% if day.morning and day.morning.isAvailable %}Đang chọn{% else %}Không làm{% endif %}</span>
+                                </span>
+                            </label>
+
+                            <label class="doctor-config-session {% if day.afternoon and day.afternoon.isAvailable %}selected{% endif %}">
+                                <input type="checkbox" name="sessions" value="{{ day.date.isoformat() }}_AFTERNOON"
+                                       {% if day.afternoon and day.afternoon.isAvailable %}checked{% endif %}>
+                                <span class="doctor-config-session-check">✓</span>
+                                <span class="doctor-config-session-icon afternoon">☼</span>
+                                <span class="doctor-config-session-info">
+                                    <span class="doctor-config-session-name">Ca chiều</span>
+                                    <span class="doctor-config-session-time">{{ config.afternoonStartTime.strftime('%H:%M') }} - {{ config.afternoonEndTime.strftime('%H:%M') }}</span>
+                                    <span class="doctor-config-session-state">{% if day.afternoon and day.afternoon.isAvailable %}Đang chọn{% else %}Không làm{% endif %}</span>
+                                </span>
+                            </label>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="doctor-config-footer">
+                <div class="doctor-config-footer-note">
+                    Các ca đã có lịch hẹn được xác nhận sẽ không thể hủy khỏi lịch làm việc.
+                </div>
+                <div class="doctor-config-footer-actions">
+                    <a href="{{ url_for('doctor_work_schedule') }}" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary">Lưu lịch làm việc</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.doctor-config-session input').forEach(function (checkbox) {
+    checkbox.addEventListener('change', function () {
+        const card = checkbox.closest('.doctor-config-session');
+        const state = card.querySelector('.doctor-config-session-state');
+        card.classList.toggle('selected', checkbox.checked);
+        if (state) state.textContent = checkbox.checked ? 'Đang chọn' : 'Không làm';
+    });
+});
+</script>
+{% endblock %}
