@@ -401,8 +401,16 @@ def get_week_start(target_date=None):
         days=target_date.weekday()
     )
 
-def build_doctor_week_schedule(doctor_id, week_start):
+def build_doctor_week_schedule(
+        doctor_id,
+        week_start
+):
     schedules = get_doctor_work_schedules_by_week(
+        doctor_id,
+        week_start
+    )
+
+    appointments = get_doctor_appointments_by_week(
         doctor_id,
         week_start
     )
@@ -411,31 +419,229 @@ def build_doctor_week_schedule(doctor_id, week_start):
 
     for schedule in schedules:
         schedule_map[
-            (schedule.workDate, schedule.session)
+            (
+                schedule.workDate,
+                schedule.session
+            )
         ] = schedule
+
+    appointment_map = {}
+
+    for appointment in appointments:
+        appointment_map.setdefault(
+            appointment.scheduledDate,
+            []
+        ).append(appointment)
 
     days = []
 
     for offset in range(7):
-        current_date = week_start + timedelta(days=offset)
+        current_date = (
+            week_start
+            + timedelta(days=offset)
+        )
+
+        morning_appointments = []
+        afternoon_appointments = []
+
+        config = get_system_config()
+
+        for appointment in appointment_map.get(
+                current_date,
+                []
+        ):
+            if appointment.scheduledTime < config.afternoonStartTime:
+                morning_appointments.append(
+                    appointment
+                )
+            else:
+                afternoon_appointments.append(
+                    appointment
+                )
 
         days.append({
             "date": current_date,
+
             "morning": schedule_map.get(
                 (
                     current_date,
                     WorkScheduleSessionEnum.MORNING
                 )
             ),
+
             "afternoon": schedule_map.get(
                 (
                     current_date,
                     WorkScheduleSessionEnum.AFTERNOON
                 )
-            )
+            ),
+
+            "morning_appointments":
+                morning_appointments,
+
+            "afternoon_appointments":
+                afternoon_appointments
         })
 
     return days
+
+def get_work_schedule_by_doctor_date_session(
+        doctor_id,
+        work_date,
+        session
+):
+    return (
+        WorkSchedule.query
+        .filter(
+            WorkSchedule.doctorId == doctor_id,
+            WorkSchedule.workDate == work_date,
+            WorkSchedule.session == session
+        )
+        .first()
+    )
+
+
+def save_doctor_work_schedule(
+        doctor_id,
+        work_date,
+        session,
+        is_selected
+):
+    config = get_system_config()
+
+    schedule = get_work_schedule_by_doctor_date_session(
+        doctor_id,
+        work_date,
+        session
+    )
+
+    if session == WorkScheduleSessionEnum.MORNING:
+        start_time = config.morningStartTime
+        end_time = config.morningEndTime
+    else:
+        start_time = config.afternoonStartTime
+        end_time = config.afternoonEndTime
+
+    if is_selected:
+        if schedule:
+            schedule.startTime = start_time
+            schedule.endTime = end_time
+            schedule.isAvailable = True
+        else:
+            schedule = WorkSchedule(
+                doctorId=doctor_id,
+                workDate=work_date,
+                session=session,
+                startTime=start_time,
+                endTime=end_time,
+                isAvailable=True
+            )
+            db.session.add(schedule)
+
+    elif schedule:
+
+        if has_confirmed_appointment_in_schedule(schedule.id):
+            raise ValueError(
+
+                "Không thể bỏ ca làm việc đã có lịch hẹn được xác nhận."
+
+            )
+
+        schedule.isAvailable = False
+
+    return schedule
+
+def is_clinic_working_day(work_date):
+    config = get_system_config()
+
+    working_days = set(
+        config.workingDaysList()
+    )
+
+    weekday_code = WEEKDAY_CODE.get(
+        work_date.weekday()
+    )
+
+    return weekday_code in working_days
+
+def update_doctor_week_schedule(
+        doctor_id,
+        week_start,
+        selected_sessions
+):
+    for offset in range(7):
+        work_date = week_start + timedelta(days=offset)
+
+        if not is_clinic_working_day(work_date):
+            continue
+
+        morning_key = (
+            f"{work_date.isoformat()}_MORNING"
+        )
+
+        afternoon_key = (
+            f"{work_date.isoformat()}_AFTERNOON"
+        )
+
+        save_doctor_work_schedule(
+            doctor_id=doctor_id,
+            work_date=work_date,
+            session=WorkScheduleSessionEnum.MORNING,
+            is_selected=morning_key in selected_sessions
+        )
+
+        save_doctor_work_schedule(
+            doctor_id=doctor_id,
+            work_date=work_date,
+            session=WorkScheduleSessionEnum.AFTERNOON,
+            is_selected=afternoon_key in selected_sessions
+        )
+
+    db.session.commit()
+
+def can_configure_schedule_week(week_start):
+    today = date.today()
+
+    current_week_start = get_week_start(today)
+
+    next_week_start = (
+        current_week_start
+        + timedelta(days=7)
+    )
+
+    return week_start == next_week_start
+
+def has_confirmed_appointment_in_schedule(schedule_id):
+    return (
+        Appointment.query
+        .filter(
+            Appointment.workScheduleId == schedule_id,
+            Appointment.status == AppointmentStatusEnum.CONFIRMED
+        )
+        .first()
+        is not None
+    )
+
+def get_doctor_appointments_by_week(
+        doctor_id,
+        week_start
+):
+    week_end = week_start + timedelta(days=6)
+
+    return (
+        Appointment.query
+        .filter(
+            Appointment.doctorId == doctor_id,
+            Appointment.scheduledDate >= week_start,
+            Appointment.scheduledDate <= week_end,
+            Appointment.status != AppointmentStatusEnum.CANCELLED
+        )
+        .order_by(
+            Appointment.scheduledDate.asc(),
+            Appointment.scheduledTime.asc()
+        )
+        .all()
+    )
 
 # Chatbot - bichnhu
 WEEKDAY_CODE = {

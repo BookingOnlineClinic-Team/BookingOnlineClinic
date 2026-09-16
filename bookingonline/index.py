@@ -516,17 +516,41 @@ def doctor_detail(doctor_id):
 @app.route("/doctor/work-schedule")
 @login_required
 def doctor_work_schedule():
+
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash("Chỉ bác sĩ mới có thể xem lịch làm việc.", "error")
+        flash(
+            "Chỉ bác sĩ mới có thể xem lịch làm việc.",
+            "error"
+        )
         return redirect(url_for("index"))
 
-    doctor = dao.get_doctor_profile_by_user(current_user.id)
+    doctor = dao.get_doctor_profile_by_user(
+        current_user.id
+    )
 
     if not doctor:
-        flash("Không tìm thấy hồ sơ bác sĩ.", "error")
+        flash(
+            "Không tìm thấy hồ sơ bác sĩ.",
+            "error"
+        )
         return redirect(url_for("index"))
 
-    week_param = request.args.get("week", "").strip()
+    today = date.today()
+
+    # Tuần hiện tại
+    current_week_start = dao.get_week_start(today)
+
+    # YC2:
+    # Chỉ giới hạn tương lai tối đa 1 tuần sau tuần hiện tại
+    max_week_start = (
+        current_week_start
+        + timedelta(days=7)
+    )
+
+    week_param = request.args.get(
+        "week",
+        ""
+    ).strip()
 
     if week_param:
         try:
@@ -534,13 +558,26 @@ def doctor_work_schedule():
                 week_param,
                 "%Y-%m-%d"
             ).date()
-        except ValueError:
-            target_date = date.today()
-    else:
-        target_date = date.today()
 
-    week_start = dao.get_week_start(target_date)
-    week_end = week_start + timedelta(days=6)
+        except ValueError:
+            target_date = today
+
+    else:
+        target_date = today
+
+    week_start = dao.get_week_start(
+        target_date
+    )
+
+    # Không chặn tuần quá khứ.
+    # Chỉ chặn nếu đi xa hơn tuần kế tiếp.
+    if week_start > max_week_start:
+        week_start = max_week_start
+
+    week_end = (
+        week_start
+        + timedelta(days=6)
+    )
 
     week_days = dao.build_doctor_week_schedule(
         doctor.id,
@@ -549,8 +586,15 @@ def doctor_work_schedule():
 
     config = dao.get_system_config()
 
-    previous_week = week_start - timedelta(days=7)
-    next_week = week_start + timedelta(days=7)
+    previous_week = (
+        week_start
+        - timedelta(days=7)
+    )
+
+    next_week = (
+        week_start
+        + timedelta(days=7)
+    )
 
     return render_template(
         "doctor_work_schedule.html",
@@ -559,10 +603,115 @@ def doctor_work_schedule():
         week_days=week_days,
         week_start=week_start,
         week_end=week_end,
+
         previous_week=previous_week,
         next_week=next_week,
+
+        # Luôn được phép xem tuần trước
+        can_go_previous=True,
+
+        # Tương lai chỉ tối đa tuần kế tiếp
+        can_go_next=(
+            week_start < max_week_start
+        ),
+
         config=config,
-        today=date.today()
+        today=today
+    )
+
+@app.route("/doctor/work-schedule/config", methods=["GET", "POST"])
+@login_required
+def doctor_work_schedule_config():
+
+    if current_user.role != UserRoleEnum.DOCTOR:
+        flash(
+            "Chỉ bác sĩ mới có thể cấu hình lịch làm việc.",
+            "error"
+        )
+        return redirect(url_for("index"))
+
+    doctor = dao.get_doctor_profile_by_user(
+        current_user.id
+    )
+
+    if not doctor:
+        flash(
+            "Không tìm thấy hồ sơ bác sĩ.",
+            "error"
+        )
+        return redirect(url_for("index"))
+
+    today = date.today()
+
+    current_week_start = dao.get_week_start(today)
+
+    week_start = (
+        current_week_start
+        + timedelta(days=7)
+    )
+
+    week_end = (
+        week_start
+        + timedelta(days=6)
+    )
+
+    config = dao.get_system_config()
+
+    working_days = set(
+        config.workingDaysList()
+    )
+
+    if request.method == "POST":
+
+        selected_sessions = set(
+            request.form.getlist("sessions")
+        )
+
+        try:
+            dao.update_doctor_week_schedule(
+                doctor_id=doctor.id,
+                week_start=week_start,
+                selected_sessions=selected_sessions
+            )
+
+            flash(
+                "Cập nhật lịch làm việc tuần kế tiếp thành công.",
+                "success"
+            )
+
+        except ValueError as e:
+            db.session.rollback()
+            flash(
+                str(e),
+                "error"
+            )
+
+        return redirect(
+            url_for(
+                "doctor_work_schedule_config"
+            )
+        )
+
+    week_days = dao.build_doctor_week_schedule(
+        doctor.id,
+        week_start
+    )
+
+    return render_template(
+        "doctor_work_schedule_config.html",
+        active_page="work-schedule",
+
+        doctor=doctor,
+
+        week_days=week_days,
+        week_start=week_start,
+        week_end=week_end,
+
+        config=config,
+        working_days=working_days,
+
+        today=today,
+        weekday_code=dao.WEEKDAY_CODE
     )
 
 #bichnhu-chatbot
