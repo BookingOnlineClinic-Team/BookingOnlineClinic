@@ -267,3 +267,80 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
         cur_date += timedelta(days=1)
     db.session.commit()
     return created
+
+# bích như - admin - cau hinh tham so
+VALID_WORKING_DAYS = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
+
+
+def validate_system_config_form(form):
+    #Validate form cấu hình hệ thống (trang Admin).
+    #Trả về (data, errors) giống các hàm validate khác trong file này.
+    errors = []
+    data = {}
+
+    # 1. Ngày làm việc chuẩn
+    working_days = [d for d in form.getlist("workingDays") if d in VALID_WORKING_DAYS]
+    if not working_days:
+        errors.append("Vui lòng chọn ít nhất 1 ngày làm việc.")
+    data["workingDays"] = ",".join(working_days) if working_days else None
+
+    # 2. Giờ làm việc (ca sáng / ca chiều)
+    def parse_time(field_name, label):
+        raw = form.get(field_name, "").strip()
+        if not raw:
+            errors.append(f"Vui lòng nhập {label}.")
+            return None
+        try:
+            return datetime.strptime(raw, "%H:%M").time()
+        except ValueError:
+            errors.append(f"{label} không đúng định dạng giờ.")
+            return None
+
+    morning_start = parse_time("morningStartTime", "giờ bắt đầu ca sáng")
+    morning_end = parse_time("morningEndTime", "giờ kết thúc ca sáng")
+    afternoon_start = parse_time("afternoonStartTime", "giờ bắt đầu ca chiều")
+    afternoon_end = parse_time("afternoonEndTime", "giờ kết thúc ca chiều")
+
+    if morning_start and morning_end and morning_end <= morning_start:
+        errors.append("Giờ kết thúc ca sáng phải sau giờ bắt đầu ca sáng.")
+    if afternoon_start and afternoon_end and afternoon_end <= afternoon_start:
+        errors.append("Giờ kết thúc ca chiều phải sau giờ bắt đầu ca chiều.")
+    if morning_end and afternoon_start and afternoon_start <= morning_end:
+        errors.append("Ca chiều phải bắt đầu sau khi ca sáng kết thúc.")
+
+    data.update({
+        "morningStartTime": morning_start,
+        "morningEndTime": morning_end,
+        "afternoonStartTime": afternoon_start,
+        "afternoonEndTime": afternoon_end,
+    })
+
+    # 3. Các trường số nguyên
+    def parse_int(field_name, label, min_v=0, max_v=None):
+        raw = form.get(field_name, "").strip()
+        if not raw:
+            errors.append(f"Vui lòng nhập {label}.")
+            return None
+        try:
+            v = int(raw)
+        except ValueError:
+            errors.append(f"{label} phải là số nguyên.")
+            return None
+        if v < min_v or (max_v is not None and v > max_v):
+            upper = max_v if max_v is not None else "∞"
+            errors.append(f"{label} phải nằm trong khoảng {min_v}-{upper}.")
+            return None
+        return v
+
+    data["maxAppointmentsPerDay"] = parse_int(
+        "maxAppointmentsPerDay", "số lịch hẹn tối đa/ngày/bệnh nhân", 1, 20)
+    data["minimumBookingTime"] = parse_int(
+        "minimumBookingTime", "thời gian tối thiểu đặt lịch trước (phút)", 0)
+    data["minimumCancellationTime"] = parse_int(
+        "minimumCancellationTime", "thời gian tối thiểu cho phép hủy lịch (phút)", 0)
+    data["refundPercentagePatient"] = parse_int(
+        "refundPercentagePatient", "% hoàn phí cho bệnh nhân", 0, 100)
+    data["refundPercentageDoctor"] = parse_int(
+        "refundPercentageDoctor", "% hoàn phí cho bác sĩ", 0, 100)
+
+    return data, errors

@@ -755,3 +755,27 @@ def get_chatbot_session_by_id(session_id):
 
 def get_chatbot_suggestion_by_id(suggestion_id):
     return ChatbotDoctorSuggestion.query.get(suggestion_id)
+
+#BichNhu - Admin - cấu hình tham số
+def update_system_config(config, **data):
+    #Cập nhật các field của SystemConfig (singleton, id=1). Bỏ qua field
+    #có giá trị None (nghĩa là không đổi giá trị đó).
+    for key, value in data.items():
+        if value is not None:
+            setattr(config, key, value)
+    db.session.commit()
+    return config
+
+
+def count_active_appointments_on_date(patient_profile_id, work_date):
+    #Đếm số lịch hẹn còn hiệu lực (không tính CANCELLED) của 1 bệnh nhân
+    #trong 1 ngày - dùng để áp dụng SystemConfig.maxAppointmentsPerDay.
+    return (
+        Appointment.query
+        .filter(
+            Appointment.patientProfileId == patient_profile_id,
+            Appointment.scheduledDate == work_date,
+            Appointment.status != AppointmentStatusEnum.CANCELLED,
+        )
+        .count()
+    )

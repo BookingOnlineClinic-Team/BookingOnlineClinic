@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Cấu hình hệ thống - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container" style="max-width: 720px;">
+
+    <div class="profile-header-group">
+      <h1 class="section-title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Cấu hình hệ thống</span>
+      </h1>
+      <p class="section-subtitle">Thiết lập các tham số vận hành chung của phòng khám.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+
+      <!-- 1. Giờ làm việc chuẩn -->
+      <div class="form-group">
+        <label class="form-label">Ngày làm việc chuẩn <span class="required">*</span></label>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px;">
+          {% for code, label in [("MONDAY","Thứ 2"), ("TUESDAY","Thứ 3"), ("WEDNESDAY","Thứ 4"),
+                                  ("THURSDAY","Thứ 5"), ("FRIDAY","Thứ 6"), ("SATURDAY","Thứ 7"), ("SUNDAY","Chủ Nhật")] %}
+          <label style="display:flex; align-items:center; gap:6px; font-weight:500; font-size:13.5px; cursor:pointer;">
+            <input type="checkbox" name="workingDays" value="{{ code }}" {% if code in selected_days %}checked{% endif %}>
+            {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label" for="morningStartTime">Ca sáng - bắt đầu <span class="required">*</span></label>
+          <input type="time" name="morningStartTime" id="morningStartTime" class="form-control"
+                 value="{{ config.morningStartTime.strftime('%H:%M') }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="morningEndTime">Ca sáng - kết thúc <span class="required">*</span></label>
+          <input type="time" name="morningEndTime" id="morningEndTime" class="form-control"
+                 value="{{ config.morningEndTime.strftime('%H:%M') }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="afternoonStartTime">Ca chiều - bắt đầu <span class="required">*</span></label>
+          <input type="time" name="afternoonStartTime" id="afternoonStartTime" class="form-control"
+                 value="{{ config.afternoonStartTime.strftime('%H:%M') }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="afternoonEndTime">Ca chiều - kết thúc <span class="required">*</span></label>
+          <input type="time" name="afternoonEndTime" id="afternoonEndTime" class="form-control"
+                 value="{{ config.afternoonEndTime.strftime('%H:%M') }}" required>
+        </div>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--color-border); margin: 22px 0;">
+
+      <!-- 2. Giới hạn đặt lịch -->
+      <div class="form-group">
+        <label class="form-label" for="maxAppointmentsPerDay">
+          Số lịch hẹn tối đa / ngày / 1 bệnh nhân <span class="required">*</span>
+        </label>
+        <input type="number" min="1" max="20" name="maxAppointmentsPerDay" id="maxAppointmentsPerDay"
+               class="form-control" value="{{ config.maxAppointmentsPerDay }}" required>
+        <small style="color: var(--color-text-secondary); font-size: 12px;">Áp dụng chung cho mọi chuyên khoa.</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="minimumBookingTime">
+          Thời gian tối thiểu đặt lịch trước ngày khám (phút) <span class="required">*</span>
+        </label>
+        <input type="number" min="0" name="minimumBookingTime" id="minimumBookingTime"
+               class="form-control" value="{{ config.minimumBookingTime }}" required>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--color-border); margin: 22px 0;">
+
+      <!-- 3. Chính sách hủy lịch -->
+      <div class="form-group">
+        <label class="form-label" for="minimumCancellationTime">
+          Thời gian tối thiểu cho phép hủy lịch (phút) <span class="required">*</span>
+        </label>
+        <input type="number" min="0" name="minimumCancellationTime" id="minimumCancellationTime"
+               class="form-control" value="{{ config.minimumCancellationTime }}" required>
+        <small style="color: var(--color-text-secondary); font-size: 12px;">
+          Áp dụng khi bệnh nhân/bác sĩ hủy lịch hẹn (UC_02).
+        </small>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--color-border); margin: 22px 0;">
+
+      <!-- 4. Chính sách hoàn phí -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label" for="refundPercentagePatient">
+            % hoàn phí cho bệnh nhân khi hủy <span class="required">*</span>
+          </label>
+          <input type="number" min="0" max="100" name="refundPercentagePatient" id="refundPercentagePatient"
+                 class="form-control" value="{{ config.refundPercentagePatient }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="refundPercentageDoctor">
+            % hoàn phí cho bác sĩ khi hủy <span class="required">*</span>
+          </label>
+          <input type="number" min="0" max="100" name="refundPercentageDoctor" id="refundPercentageDoctor"
+                 class="form-control" value="{{ config.refundPercentageDoctor }}" required>
+        </div>
+      </div>
+      <small style="color: var(--color-text-secondary); font-size: 12px; display:block; margin-top:-8px; margin-bottom: 8px;">
+        Lưu ý: nếu bác sĩ chủ động hủy lịch, bệnh nhân luôn nhận 100%, không phụ thuộc % này.
+      </small>
+
+      <div style="background: var(--color-section-bg); border: 1px solid var(--color-border); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: var(--color-text-secondary); margin: 14px 0;">
+        Thay đổi chỉ áp dụng cho các lượt đặt lịch / hủy lịch mới, không ảnh hưởng lịch hẹn đã tồn tại.
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <button type="submit" class="btn btn-primary" id="btn-save-settings">Lưu cấu hình</button>
+      </div>
+    </form>
+
+  </div>
+</section>
+</div>
+{% endblock %}
