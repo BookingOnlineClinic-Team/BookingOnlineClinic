@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý bác sĩ - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container" style="max-width: 1100px;">
+
+    <div class="profile-header-group" style="display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <h1 class="section-title">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Quản lý bác sĩ</span>
+        </h1>
+        <p class="section-subtitle">Tạo tài khoản đăng nhập cho bác sĩ mới, sửa hồ sơ, đặt lại mật khẩu hoặc khóa/mở khóa tài khoản.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-open-add-doctor-modal">+ Thêm bác sĩ</button>
+    </div>
+
+    <table class="form-table" style="width:100%; border-collapse:collapse; margin-top:16px;">
+      <thead>
+        <tr style="text-align:left; border-bottom:1px solid var(--color-border);">
+          <th style="padding:10px 8px;">Bác sĩ</th>
+          <th style="padding:10px 8px;">Tên đăng nhập</th>
+          <th style="padding:10px 8px;">Chuyên khoa</th>
+          <th style="padding:10px 8px;">Kinh nghiệm</th>
+          <th style="padding:10px 8px;">Chi phí</th>
+          <th style="padding:10px 8px;">Trạng thái</th>
+          <th style="padding:10px 8px;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doctor in doctors %}
+        <tr style="border-bottom:1px solid var(--color-border);">
+          <td style="padding:10px 8px;">
+            <div style="font-weight:600;">{{ doctor.user.name }}</div>
+            <div style="font-size:12px; color:var(--color-text-secondary);">{{ doctor.user.email }}{% if doctor.user.phone %} · {{ doctor.user.phone }}{% endif %}</div>
+          </td>
+          <td style="padding:10px 8px;">{{ doctor.user.username }}</td>
+          <td style="padding:10px 8px;">{{ doctor.specialization.name }}</td>
+          <td style="padding:10px 8px;">{{ doctor.experienceYrs }} năm</td>
+          <td style="padding:10px 8px;">{{ "{:,.0f}".format(doctor.fee).replace(",", ".") }} đ</td>
+          <td style="padding:10px 8px;">
+            {% if doctor.user.active %}
+            <span style="color:#1a7f37; font-weight:600; font-size:13px;">Đang hoạt động</span>
+            {% else %}
+            <span style="color:#b42318; font-weight:600; font-size:13px;">Đã khóa</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px 8px; white-space:nowrap;">
+            <button type="button" class="btn btn-secondary btn-sm btn-edit-doctor"
+                    data-id="{{ doctor.id }}"
+                    data-name="{{ doctor.user.name }}"
+                    data-email="{{ doctor.user.email }}"
+                    data-phone="{{ doctor.user.phone or '' }}"
+                    data-gender="{{ doctor.user.gender.value if doctor.user.gender else '' }}"
+                    data-specialization="{{ doctor.specializationId }}"
+                    data-license="{{ doctor.licenseNumber }}"
+                    data-experience="{{ doctor.experienceYrs }}"
+                    data-fee="{{ doctor.fee|int }}"
+                    data-description="{{ doctor.description or '' }}"
+                    data-bio="{{ doctor.bio or '' }}"
+                    data-avatar="{{ doctor.avatarUrl or '' }}">
+              Sửa
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-sm btn-reset-password"
+                    data-id="{{ doctor.id }}" data-name="{{ doctor.user.name }}">
+              Đặt lại mật khẩu
+            </button>
+
+            <form method="POST" action="{{ url_for('admin_doctor_toggle_active', doctor_id=doctor.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-secondary btn-sm">
+                {{ 'Khóa' if doctor.user.active else 'Mở khóa' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="padding:16px 8px; text-align:center; color:var(--color-text-secondary);">Chưa có bác sĩ nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Modal Thêm/Sửa bác sĩ -->
+<div class="modal-backdrop" id="modal-doctor">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="doctor-modal-title-inner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span id="doctor-modal-title-text">Thêm bác sĩ</span>
+      </h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modal-doctor')" aria-label="Đóng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form method="POST" id="doctor-form" action="{{ url_for('admin_doctors') }}">
+      <div class="modal-body">
+
+        <!-- Khối tài khoản: CHỈ hiển thị khi TẠO MỚI, ẩn đi khi SỬA -->
+        <div id="doctor-account-fields">
+          <div class="form-group">
+            <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+            <input type="text" name="username" id="doctor-username" class="form-control" maxlength="150">
+          </div>
+          <div style="display:flex; gap:12px;">
+            <div class="form-group" style="flex:1;">
+              <label class="form-label">Mật khẩu <span class="required">*</span></label>
+              <input type="password" name="password" id="doctor-password" class="form-control">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label class="form-label">Xác nhận mật khẩu <span class="required">*</span></label>
+              <input type="password" name="confirmPassword" id="doctor-confirm-password" class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Họ tên <span class="required">*</span></label>
+          <input type="text" name="name" id="doctor-name" class="form-control" maxlength="150" required>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Email <span class="required">*</span></label>
+            <input type="email" name="email" id="doctor-email" class="form-control" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" name="phone" id="doctor-phone" class="form-control" maxlength="20">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Giới tính</label>
+            <select name="gender" id="doctor-gender" class="form-control">
+              <option value="">-- Chọn --</option>
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Chuyên khoa <span class="required">*</span></label>
+            <select name="specializationId" id="doctor-specialization" class="form-control" required>
+              {% for spec in specializations %}
+              <option value="{{ spec.id }}">{{ spec.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Số chứng chỉ hành nghề <span class="required">*</span></label>
+            <input type="text" name="licenseNumber" id="doctor-license" class="form-control" maxlength="50" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Số năm kinh nghiệm <span class="required">*</span></label>
+            <input type="number" name="experienceYrs" id="doctor-experience" class="form-control" min="0" max="70" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Chi phí khám (đ) <span class="required">*</span></label>
+            <input type="number" name="fee" id="doctor-fee" class="form-control" min="0" step="1000" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô tả ngắn</label>
+          <textarea name="description" id="doctor-description" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiểu sử</label>
+          <textarea name="bio" id="doctor-bio" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Avatar URL</label>
+          <input type="text" name="avatarUrl" id="doctor-avatar" class="form-control" placeholder="https://...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-doctor')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Đặt lại mật khẩu -->
+<div class="modal-backdrop" id="modal-reset-password">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span id="reset-password-title">Đặt lại mật khẩu</span>
+      </h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modal-reset-password')" aria-label="Đóng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <form method="POST" id="reset-password-form">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Mật khẩu mới <span class="required">*</span></label>
+          <input type="password" name="newPassword" id="reset-new-password" class="form-control" minlength="6" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reset-password')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Đặt lại</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const doctorModalTitleText = document.getElementById('doctor-modal-title-text');
+  const doctorForm = document.getElementById('doctor-form');
+  const doctorAccountFields = document.getElementById('doctor-account-fields');
+
+  const doctorUsernameInput = document.getElementById('doctor-username');
+  const doctorPasswordInput = document.getElementById('doctor-password');
+  const doctorConfirmPasswordInput = document.getElementById('doctor-confirm-password');
+  const doctorNameInput = document.getElementById('doctor-name');
+  const doctorEmailInput = document.getElementById('doctor-email');
+  const doctorPhoneInput = document.getElementById('doctor-phone');
+  const doctorGenderInput = document.getElementById('doctor-gender');
+  const doctorSpecializationInput = document.getElementById('doctor-specialization');
+  const doctorLicenseInput = document.getElementById('doctor-license');
+  const doctorExperienceInput = document.getElementById('doctor-experience');
+  const doctorFeeInput = document.getElementById('doctor-fee');
+  const doctorDescriptionInput = document.getElementById('doctor-description');
+  const doctorBioInput = document.getElementById('doctor-bio');
+  const doctorAvatarInput = document.getElementById('doctor-avatar');
+
+  // Mở modal ở chế độ TẠO MỚI: hiện field username/password, để bắt buộc (required)
+  document.getElementById('btn-open-add-doctor-modal').addEventListener('click', () => {
+    doctorModalTitleText.textContent = 'Thêm bác sĩ';
+    doctorForm.action = "{{ url_for('admin_doctors') }}";
+    doctorForm.reset();
+    doctorAccountFields.style.display = '';
+    doctorUsernameInput.required = true;
+    doctorPasswordInput.required = true;
+    doctorConfirmPasswordInput.required = true;
+    openModal('modal-doctor');
+  });
+
+  // Mở modal ở chế độ SỬA: ẩn field username/password (không đổi username/password ở đây)
+  document.querySelectorAll('.btn-edit-doctor').forEach(btn => {
+    btn.addEventListener('click', () => {
+      doctorModalTitleText.textContent = 'Sửa thông tin bác sĩ';
+      doctorForm.action = `/admin/doctors/${btn.dataset.id}/edit`;
+
+      doctorAccountFields.style.display = 'none';
+      doctorUsernameInput.required = false;
+      doctorPasswordInput.required = false;
+      doctorConfirmPasswordInput.required = false;
+
+      doctorNameInput.value = btn.dataset.name;
+      doctorEmailInput.value = btn.dataset.email;
+      doctorPhoneInput.value = btn.dataset.phone;
+      doctorGenderInput.value = btn.dataset.gender;
+      doctorSpecializationInput.value = btn.dataset.specialization;
+      doctorLicenseInput.value = btn.dataset.license;
+      doctorExperienceInput.value = btn.dataset.experience;
+      doctorFeeInput.value = btn.dataset.fee;
+      doctorDescriptionInput.value = btn.dataset.description;
+      doctorBioInput.value = btn.dataset.bio;
+      doctorAvatarInput.value = btn.dataset.avatar;
+
+      openModal('modal-doctor');
+    });
+  });
+
+  // Đặt lại mật khẩu: set action của form theo đúng bác sĩ được bấm
+  const resetPasswordForm = document.getElementById('reset-password-form');
+  const resetPasswordTitle = document.getElementById('reset-password-title');
+  document.querySelectorAll('.btn-reset-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      resetPasswordTitle.textContent = `Đặt lại mật khẩu - ${btn.dataset.name}`;
+      resetPasswordForm.action = `/admin/doctors/${btn.dataset.id}/reset-password`;
+      document.getElementById('reset-new-password').value = '';
+      openModal('modal-reset-password');
+    });
+  });
+</script>
+{% endblock %}

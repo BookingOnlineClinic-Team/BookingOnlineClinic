@@ -15,7 +15,7 @@ def get_user_by_username(username, role=None):
 
 def verify_login(username, password, role=None):
     user = get_user_by_username(username, role)
-    if user and user.password == password:
+    if user and user.password == password and user.active:
         return user
     return None
 
@@ -826,3 +826,117 @@ def delete_specialization(specialization):
     db.session.delete(specialization)
     db.session.commit()
     return True, None
+
+# bichnhu - admin - quản lý tài khoản bác sĩ (User + DoctorProfile)
+
+def is_username_taken(username, exclude_user_id=None):
+    # Kiểm tra username đã tồn tại chưa (không phân biệt hoa/thường)
+    q = User.query.filter(db.func.lower(User.username) == username.strip().lower())
+    if exclude_user_id:
+        q = q.filter(User.id != exclude_user_id)
+    return db.session.query(q.exists()).scalar()
+
+
+def get_all_doctors_admin(keyword=None, specialization_id=None):
+    # Danh sách TẤT CẢ bác sĩ dùng cho trang quản lý của admin.
+    # Khác với get_doctors(): KHÔNG lọc User.active, vì admin cần thấy
+    # cả những bác sĩ đang bị khóa để có thể mở khóa lại.
+    query = (
+        DoctorProfile.query
+        .join(User, DoctorProfile.userId == User.id)
+        .filter(User.role == UserRoleEnum.DOCTOR)
+    )
+    if keyword:
+        keyword = keyword.strip()
+        if keyword:
+            query = query.filter(
+                db.or_(
+                    User.name.ilike(f"%{keyword}%"),
+                    User.username.ilike(f"%{keyword}%"),
+                )
+            )
+    if specialization_id:
+        query = query.filter(DoctorProfile.specializationId == specialization_id)
+    return query.order_by(User.name.asc()).all()
+
+
+def create_doctor_account(
+    name, username, password, email, specialization_id,
+    license_number, experience_yrs, fee,
+    phone=None, gender=None, description=None, bio=None, avatar_url=None,
+):
+    # Tạo TÀI KHOẢN bác sĩ hoàn chỉnh: 1 User (role=DOCTOR) + 1 DoctorProfile
+    # đi kèm, trong cùng một transaction. Nếu lỗi giữa chừng -> rollback,
+    # tránh tạo ra User "mồ côi" (không có DoctorProfile đi kèm).
+    try:
+        user = User(
+            name=name,
+            username=username,
+            # Lưu plaintext để đồng bộ với verify_login() hiện tại của project
+            # (chưa hash password ở bất kỳ đâu). Muốn bảo mật hơn thì đổi thành
+            # password=dao.hash_password(password) VÀ sửa luôn verify_login().
+            password=password,
+            email=email,
+            phone=phone,
+            gender=gender,
+            role=UserRoleEnum.DOCTOR,
+            active=True,
+        )
+        db.session.add(user)
+        db.session.flush()  # flush để có user.id ngay, chưa commit vội
+
+        profile = DoctorProfile(
+            userId=user.id,
+            specializationId=specialization_id,
+            licenseNumber=license_number,
+            experienceYrs=experience_yrs,
+            fee=fee,
+            description=description,
+            bio=bio,
+            avatarUrl=avatar_url,
+        )
+        db.session.add(profile)
+        db.session.commit()
+        return user, profile
+    except Exception:
+        db.session.rollback()
+        raise
+
+
+def update_doctor_account(doctor, name, email, specialization_id,
+                           license_number, experience_yrs, fee,
+                           phone=None, gender=None, description=None, bio=None, avatar_url=None):
+    # Sửa thông tin User + DoctorProfile của 1 bác sĩ đã tồn tại.
+    # KHÔNG đổi username/password ở đây (dùng route reset-password riêng cho mật khẩu).
+    user = doctor.user
+    user.name = name
+    user.email = email
+    user.phone = phone
+    user.gender = gender
+
+    doctor.specializationId = specialization_id
+    doctor.licenseNumber = license_number
+    doctor.experienceYrs = experience_yrs
+    doctor.fee = fee
+    doctor.description = description
+    doctor.bio = bio
+    doctor.avatarUrl = avatar_url
+    db.session.commit()
+    return doctor
+
+
+def toggle_doctor_active(doctor):
+    # Khóa / Mở khóa tài khoản đăng nhập của bác sĩ (không xóa dữ liệu).
+    # User.active=False -> bác sĩ không login được, đồng thời tự động bị ẩn
+    # khỏi danh sách đặt lịch công khai (get_doctors()/get_doctor_detail() đã lọc User.active).
+    user = doctor.user
+    user.active = not user.active
+    db.session.commit()
+    return doctor
+
+
+def reset_doctor_password(doctor, new_password):
+    # Admin đặt lại mật khẩu mới cho bác sĩ (dùng khi bác sĩ quên mật khẩu)
+    doctor.user.password = new_password
+    db.session.commit()
+    return doctor
