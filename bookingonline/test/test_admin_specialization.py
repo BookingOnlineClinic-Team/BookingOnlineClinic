@@ -233,12 +233,12 @@ def test_validate_form_valid_data_has_no_errors(mock_taken):
     # Dữ liệu hợp lệ -> không có lỗi nào.
     mock_taken.return_value = False
 
-    form = {"name": "Nhi khoa", "icon": "baby", "description": "Khám nhi"}
+    form = {"name": "Nhi khoa", "description": "Khám nhi"}
     data, errors = utils.validate_specialization_form(form)
 
     assert errors == []
     assert data["name"] == "Nhi khoa"
-    assert data["icon"] == "baby"
+
 
 
 @patch("utils.dao.is_specialization_name_taken")
@@ -272,19 +272,6 @@ def test_validate_form_duplicate_name_is_error(mock_taken):
     data, errors = utils.validate_specialization_form(form)
 
     assert len(errors) == 1
-
-
-@patch("utils.dao.is_specialization_name_taken")
-def test_validate_form_invalid_icon_falls_back_to_default(mock_taken):
-    # Icon không nằm trong danh sách hợp lệ -> tự đổi về
-    # 'stethoscope' thay vì báo lỗi (tránh vỡ giao diện bệnh nhân).
-    mock_taken.return_value = False
-
-    form = {"name": "Nhi khoa", "icon": "icon-khong-ton-tai", "description": ""}
-    data, errors = utils.validate_specialization_form(form)
-
-    assert errors == []
-    assert data["icon"] == "stethoscope"
 
 
 @patch("utils.dao.is_specialization_name_taken")
