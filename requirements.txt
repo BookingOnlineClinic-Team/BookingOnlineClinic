@@ -30,6 +30,7 @@ pillow==12.3.0
 pycparser==2.23
 pydantic==2.13.4
 pydantic_core==2.46.4
+pytest==9.1.1
 psycopg[binary]==3.3.5
 PyMySQL==1.1.2
 python-dotenv==1.2.1
