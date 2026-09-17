@@ -7,6 +7,11 @@ import utils
 from bookingonline.models.models import ( User, GenderEnum, UserRoleEnum, PaymentStatusEnum, Appointment,)
 from bookingonline.services.gemini_service import classify_specialization, GeminiServiceError
 
+#bichnhu-admin-cauhinh
+from bookingonline.services.gemini_service import classify_specialization, GeminiServiceError
+import bookingonline.admin  # (đăng ký các route /admin/... vào app)
+#bichnhu-admin-cauhinh
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -30,11 +35,32 @@ def inject_globals():
             default_profile_id = my_profiles[0].id
     return dict(unread_notification_count=unread_count, chatbot_default_profile_id=default_profile_id)
 
+# @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     if current_user.is_authenticated:
+#         if current_user.role == UserRoleEnum.DOCTOR:
+#             return redirect(url_for("doctor_profile_detail"))
+#         return redirect(url_for("select_profile"))
+#     if request.method == "POST":
+#         username = request.form.get("username", "").strip()
+#         password = request.form.get("password", "")
+#         user = dao.verify_login(username, password)
+#         if user:
+#             login_user(user)
+#             flash("Đăng nhập thành công!", "success")
+#             if user.role == UserRoleEnum.DOCTOR:
+#                 return redirect(url_for("doctor_profile_detail"))
+#             return redirect(url_for("select_profile"))
+#         flash("Sai tên đăng nhập hoặc mật khẩu.", "error")
+#     return render_template("login.html", active_page="login")
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
         if current_user.role == UserRoleEnum.DOCTOR:
             return redirect(url_for("doctor_profile_detail"))
+        if current_user.role == UserRoleEnum.ADMIN:
+            return redirect(url_for("admin_settings"))
         return redirect(url_for("select_profile"))
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -45,10 +71,11 @@ def login():
             flash("Đăng nhập thành công!", "success")
             if user.role == UserRoleEnum.DOCTOR:
                 return redirect(url_for("doctor_profile_detail"))
+            if user.role == UserRoleEnum.ADMIN:
+                return redirect(url_for("admin_settings"))
             return redirect(url_for("select_profile"))
         flash("Sai tên đăng nhập hoặc mật khẩu.", "error")
     return render_template("login.html", active_page="login")
-
 
 @app.route("/logout")
 def logout():
@@ -330,7 +357,22 @@ def appointment_schedule():
         if scheduled_dt - datetime.now() < timedelta(minutes=config.minimumBookingTime):
             flash("Đã quá giờ quy định đặt lịch, vui lòng đặt ngày khác", "warning")
             return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
+        #bichnhu-cauhinh
+        config = dao.get_system_config()
+        scheduled_dt = datetime.combine(scheduled_date, scheduled_time)
+        if scheduled_dt - datetime.now() < timedelta(minutes=config.minimumBookingTime):
+            flash("Đã quá giờ quy định đặt lịch, vui lòng đặt ngày khác", "warning")
+            return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
 
+        active_count = dao.count_active_appointments_on_date(profile.id, scheduled_date)
+        if active_count >= config.maxAppointmentsPerDay:
+            flash(
+                f"Bạn đã đạt số lượng lịch hẹn tối đa ({config.maxAppointmentsPerDay}) "
+                f"trong ngày {scheduled_date.strftime('%d/%m/%Y')}, vui lòng chọn ngày khác.",
+                "warning",
+            )
+            return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
+        #bichnhu-cauhinh
         appointment = dao.create_appointment(
             patient_profile=profile,
             doctor=doctor,
