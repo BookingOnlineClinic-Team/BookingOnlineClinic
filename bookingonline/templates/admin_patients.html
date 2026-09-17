@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý bệnh nhân - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container" style="max-width: 1000px;">
+
+    <div class="profile-header-group" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 class="section-title">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Quản lý bệnh nhân</span>
+        </h1>
+        <p class="section-subtitle">Xem danh sách tài khoản bệnh nhân và khóa/mở khóa khi cần. Không chỉnh sửa thông tin cá nhân tại đây.</p>
+      </div>
+
+      <!-- Ô tìm kiếm: submit GET, giữ nguyên từ khóa sau khi reload -->
+      <form method="GET" action="{{ url_for('admin_patients') }}" style="display:flex; gap:8px;">
+        <input type="text" name="keyword" value="{{ keyword }}" class="form-control"
+               placeholder="Tìm theo tên, tên đăng nhập, email, SĐT..." style="min-width:260px;">
+        <button type="submit" class="btn btn-secondary">Tìm</button>
+      </form>
+    </div>
+
+    <table class="form-table" style="width:100%; border-collapse:collapse; margin-top:16px;">
+      <thead>
+        <tr style="text-align:left; border-bottom:1px solid var(--color-border);">
+          <th style="padding:10px 8px;">Bệnh nhân</th>
+          <th style="padding:10px 8px;">Tên đăng nhập</th>
+          <th style="padding:10px 8px;">Hồ sơ sức khỏe</th>
+          <th style="padding:10px 8px;">Lịch hẹn</th>
+          <th style="padding:10px 8px;">Trạng thái</th>
+          <th style="padding:10px 8px;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in patient_rows %}
+        <tr style="border-bottom:1px solid var(--color-border);">
+          <td style="padding:10px 8px;">
+            <div style="font-weight:600;">{{ row.user.name }}</div>
+            <div style="font-size:12px; color:var(--color-text-secondary);">{{ row.user.email }}{% if row.user.phone %} · {{ row.user.phone }}{% endif %}</div>
+          </td>
+          <td style="padding:10px 8px;">{{ row.user.username }}</td>
+          <td style="padding:10px 8px;">{{ row.profile_count }}</td>
+          <td style="padding:10px 8px;">{{ row.appointment_count }}</td>
+          <td style="padding:10px 8px;">
+            {% if row.user.active %}
+            <span style="color:#1a7f37; font-weight:600; font-size:13px;">Đang hoạt động</span>
+            {% else %}
+            <span style="color:#b42318; font-weight:600; font-size:13px;">Đã khóa</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px 8px; white-space:nowrap;">
+            <form method="POST" action="{{ url_for('admin_patient_toggle_active', user_id=row.user.id) }}" style="display:inline;"
+                  {% if row.user.active %}onsubmit="return confirm('Khóa tài khoản \'{{ row.user.name }}\'? Bệnh nhân sẽ không đăng nhập được cho đến khi mở khóa lại.');"{% endif %}>
+              <button type="submit" class="btn btn-secondary btn-sm">
+                {{ 'Khóa' if row.user.active else 'Mở khóa' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="padding:16px 8px; text-align:center; color:var(--color-text-secondary);">Không tìm thấy bệnh nhân nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</section>
+</div>
+{% endblock %}

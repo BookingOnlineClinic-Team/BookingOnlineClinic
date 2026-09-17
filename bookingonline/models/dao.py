@@ -940,3 +940,51 @@ def reset_doctor_password(doctor, new_password):
     doctor.user.password = new_password
     db.session.commit()
     return doctor
+
+# bichnhu - admin - quản lý bệnh nhân (chỉ xem danh sách + khóa/mở khóa)
+
+def get_user_by_id(user_id):
+    # Hàm tiện ích chung, dùng cho các thao tác trên User (không riêng bệnh nhân)
+    return User.query.get(user_id)
+
+
+def get_all_patients_admin(keyword=None):
+    # Danh sách TẤT CẢ tài khoản bệnh nhân cho trang quản lý của admin.
+    # Không lọc active, vì admin cần thấy cả tài khoản đã bị khóa để mở lại.
+    query = User.query.filter(User.role == UserRoleEnum.PATIENT)
+    if keyword:
+        keyword = keyword.strip()
+        if keyword:
+            like = f"%{keyword}%"
+            query = query.filter(
+                db.or_(
+                    User.name.ilike(like),
+                    User.username.ilike(like),
+                    User.email.ilike(like),
+                    User.phone.ilike(like),
+                )
+            )
+    return query.order_by(User.name.asc()).all()
+
+
+def count_health_profiles_for_patient(user_id):
+    # Số hồ sơ sức khỏe (có thể là của người thân) mà tài khoản này đang quản lý
+    return PatientHealthProfile.query.filter_by(userId=user_id).count()
+
+
+def count_appointments_for_patient(user_id):
+    # Tổng số lịch hẹn đã đặt qua tất cả hồ sơ sức khỏe thuộc tài khoản này
+    return (
+        Appointment.query
+        .join(PatientHealthProfile, Appointment.patientProfileId == PatientHealthProfile.id)
+        .filter(PatientHealthProfile.userId == user_id)
+        .count()
+    )
+
+
+def toggle_user_active(user):
+    # Khóa / Mở khóa tài khoản (dùng chung được cho patient, doctor...).
+    # active=False -> không login được nữa (verify_login đã kiểm tra user.active).
+    user.active = not user.active
+    db.session.commit()
+    return user
