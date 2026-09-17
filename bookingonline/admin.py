@@ -131,3 +131,99 @@ def admin_specialization_delete(specialization_id):
     else:
         flash("Đã xóa chuyên khoa.", "success")
     return redirect(url_for("admin_specializations"))
+
+
+# bichnhu - admin - quản lý bác sĩ (tạo tài khoản + hồ sơ bác sĩ)
+
+
+@app.route("/admin/doctors", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_doctors():
+    if request.method == "POST":
+        # POST ở trang danh sách = TẠO MỚI bác sĩ (kèm tài khoản đăng nhập)
+        data, errors = utils.validate_doctor_account_form(request.form, is_edit=False)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return redirect(url_for("admin_doctors"))
+
+        dao.create_doctor_account(
+            name=data["name"], username=data["username"], password=data["password"],
+            email=data["email"], specialization_id=data["specialization_id"],
+            license_number=data["license_number"], experience_yrs=data["experience_yrs"],
+            fee=data["fee"], phone=data["phone"], gender=data["gender"],
+            description=data["description"], bio=data["bio"], avatar_url=data["avatar_url"],
+        )
+        flash(f"Đã tạo tài khoản bác sĩ \"{data['name']}\" thành công.", "success")
+        return redirect(url_for("admin_doctors"))
+
+    doctors = dao.get_all_doctors_admin()
+    specializations = dao.get_all_specializations(active_only=False)
+    return render_template(
+        "admin_doctors.html",
+        active_page="admin-doctors",
+        doctors=doctors,
+        specializations=specializations,
+    )
+
+
+@app.route("/admin/doctors/<int:doctor_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def admin_doctor_edit(doctor_id):
+    doctor = dao.get_doctor_by_id(doctor_id)
+    if not doctor:
+        flash("Không tìm thấy bác sĩ.", "error")
+        return redirect(url_for("admin_doctors"))
+
+    data, errors = utils.validate_doctor_account_form(request.form, is_edit=True)
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(url_for("admin_doctors"))
+
+    dao.update_doctor_account(
+        doctor, name=data["name"], email=data["email"],
+        specialization_id=data["specialization_id"],
+        license_number=data["license_number"], experience_yrs=data["experience_yrs"],
+        fee=data["fee"], phone=data["phone"], gender=data["gender"],
+        description=data["description"], bio=data["bio"], avatar_url=data["avatar_url"],
+    )
+    flash("Đã cập nhật thông tin bác sĩ.", "success")
+    return redirect(url_for("admin_doctors"))
+
+
+@app.route("/admin/doctors/<int:doctor_id>/toggle-active", methods=["POST"])
+@login_required
+@admin_required
+def admin_doctor_toggle_active(doctor_id):
+    # Khóa/Mở khóa tài khoản đăng nhập của bác sĩ (không xóa dữ liệu)
+    doctor = dao.get_doctor_by_id(doctor_id)
+    if not doctor:
+        flash("Không tìm thấy bác sĩ.", "error")
+        return redirect(url_for("admin_doctors"))
+
+    dao.toggle_doctor_active(doctor)
+    flash(f"Đã {'mở khóa' if doctor.user.active else 'khóa'} tài khoản bác sĩ \"{doctor.user.name}\".", "success")
+    return redirect(url_for("admin_doctors"))
+
+
+@app.route("/admin/doctors/<int:doctor_id>/reset-password", methods=["POST"])
+@login_required
+@admin_required
+def admin_doctor_reset_password(doctor_id):
+    # Admin đặt lại mật khẩu mới cho bác sĩ (khi bác sĩ quên mật khẩu)
+    doctor = dao.get_doctor_by_id(doctor_id)
+    if not doctor:
+        flash("Không tìm thấy bác sĩ.", "error")
+        return redirect(url_for("admin_doctors"))
+
+    new_password = request.form.get("newPassword", "").strip()
+    if not new_password or len(new_password) < 6:
+        flash("Mật khẩu mới phải có tối thiểu 6 ký tự.", "error")
+        return redirect(url_for("admin_doctors"))
+
+    dao.reset_doctor_password(doctor, new_password)
+    flash(f"Đã đặt lại mật khẩu cho bác sĩ \"{doctor.user.name}\".", "success")
+    return redirect(url_for("admin_doctors"))

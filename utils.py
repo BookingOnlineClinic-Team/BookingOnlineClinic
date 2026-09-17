@@ -359,15 +359,125 @@ def validate_specialization_form(form, exclude_id=None):
     elif dao.is_specialization_name_taken(name, exclude_id=exclude_id):
         errors.append("Tên chuyên khoa này đã tồn tại.")
     data["name"] = name
-
-    icon = form.get("icon", "stethoscope").strip()
-    if icon not in VALID_SPECIALIZATION_ICONS:
-        icon = "stethoscope"
-    data["icon"] = icon
-
     description = form.get("description", "").strip()
     if len(description) > 255:
         errors.append("Mô tả tối đa 255 ký tự.")
     data["description"] = description
+
+    return data, errors
+
+# bichnhu - admin - quản lý bác sĩ (tạo tài khoản + hồ sơ bác sĩ)
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+def validate_doctor_account_form(form, is_edit=False):
+    # is_edit=False -> validate cả username/password (khi ADMIN TẠO MỚI bác sĩ)
+    # is_edit=True  -> bỏ qua username/password (khi ADMIN SỬA hồ sơ bác sĩ đã có)
+    errors = []
+    data = {}
+
+    name = form.get("name", "").strip()
+    if not name:
+        errors.append("Vui lòng nhập họ tên bác sĩ.")
+    data["name"] = name
+
+    email = form.get("email", "").strip()
+    if not email or not EMAIL_REGEX.match(email):
+        errors.append("Email không hợp lệ.")
+    data["email"] = email
+
+    phone = form.get("phone", "").strip()
+    if phone and not is_valid_phone(phone):
+        errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).")
+    data["phone"] = phone or None
+
+    gender_raw = form.get("gender", "").strip()
+    gender = None
+    if gender_raw:
+        try:
+            gender = GenderEnum[gender_raw]
+        except KeyError:
+            errors.append("Giới tính không hợp lệ.")
+    data["gender"] = gender
+
+    # Chuyên khoa
+    spec_raw = form.get("specializationId", "").strip()
+    specialization_id = None
+    if not spec_raw:
+        errors.append("Vui lòng chọn chuyên khoa.")
+    else:
+        try:
+            specialization_id = int(spec_raw)
+        except ValueError:
+            errors.append("Chuyên khoa không hợp lệ.")
+        else:
+            if not dao.get_specialization_by_id(specialization_id):
+                errors.append("Chuyên khoa không tồn tại.")
+    data["specialization_id"] = specialization_id
+
+    license_number = form.get("licenseNumber", "").strip()
+    if not license_number:
+        errors.append("Vui lòng nhập số chứng chỉ hành nghề.")
+    elif len(license_number) > 50:
+        errors.append("Số chứng chỉ hành nghề tối đa 50 ký tự.")
+    data["license_number"] = license_number
+
+    experience_yrs_raw = form.get("experienceYrs", "").strip()
+    experience_yrs = None
+    if not experience_yrs_raw:
+        errors.append("Vui lòng nhập số năm kinh nghiệm.")
+    else:
+        try:
+            experience_yrs = int(experience_yrs_raw)
+            if experience_yrs < 0 or experience_yrs > 70:
+                errors.append("Số năm kinh nghiệm không hợp lệ (0-70).")
+        except ValueError:
+            errors.append("Số năm kinh nghiệm phải là số nguyên.")
+    data["experience_yrs"] = experience_yrs
+
+    fee_raw = form.get("fee", "").strip()
+    fee = None
+    if not fee_raw:
+        errors.append("Vui lòng nhập chi phí khám.")
+    else:
+        try:
+            fee = float(fee_raw)
+            if fee <= 0:
+                errors.append("Chi phí khám phải lớn hơn 0.")
+        except ValueError:
+            errors.append("Chi phí khám phải là số.")
+    data["fee"] = fee
+
+    description = form.get("description", "").strip()
+    data["description"] = description or None
+
+    bio = form.get("bio", "").strip()
+    data["bio"] = bio or None
+
+    avatar_url = form.get("avatarUrl", "").strip()
+    if avatar_url and not (avatar_url.startswith("http://") or avatar_url.startswith("https://")):
+        errors.append("Avatar URL phải bắt đầu bằng http:// hoặc https://.")
+    data["avatar_url"] = avatar_url or None
+
+    # Chỉ validate username/password khi TẠO MỚI, không đụng vào khi SỬA
+    if not is_edit:
+        username = form.get("username", "").strip()
+        password = form.get("password", "")
+        confirm_password = form.get("confirmPassword", "")
+
+        if not username:
+            errors.append("Vui lòng nhập tên đăng nhập.")
+        elif len(username) < 4:
+            errors.append("Tên đăng nhập tối thiểu 4 ký tự.")
+        elif dao.is_username_taken(username):
+            errors.append("Tên đăng nhập này đã được sử dụng.")
+        data["username"] = username
+
+        if not password:
+            errors.append("Vui lòng nhập mật khẩu.")
+        elif len(password) < 6:
+            errors.append("Mật khẩu tối thiểu 6 ký tự.")
+        elif password != confirm_password:
+            errors.append("Xác nhận mật khẩu không khớp.")
+        data["password"] = password
 
     return data, errors
