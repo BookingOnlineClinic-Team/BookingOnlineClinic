@@ -270,8 +270,6 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
 
 # bích như - admin - cau hinh tham so
 VALID_WORKING_DAYS = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
-
-
 def validate_system_config_form(form):
     #Validate form cấu hình hệ thống (trang Admin).
     #Trả về (data, errors) giống các hàm validate khác trong file này.
@@ -342,5 +340,34 @@ def validate_system_config_form(form):
         "refundPercentagePatient", "% hoàn phí cho bệnh nhân", 0, 100)
     data["refundPercentageDoctor"] = parse_int(
         "refundPercentageDoctor", "% hoàn phí cho bác sĩ", 0, 100)
+
+    return data, errors
+
+#bichnhu-admin-quan ly chuyen khoa
+VALID_SPECIALIZATION_ICONS = ["stethoscope", "heart-pulse", "baby", "sparkles", "activity"]
+
+def validate_specialization_form(form, exclude_id=None):
+    #Validate form thêm/sửa chuyên khoa (trang Admin).
+    errors = []
+    data = {}
+
+    name = form.get("name", "").strip()
+    if not name:
+        errors.append("Vui lòng nhập tên chuyên khoa.")
+    elif len(name) > 120:
+        errors.append("Tên chuyên khoa tối đa 120 ký tự.")
+    elif dao.is_specialization_name_taken(name, exclude_id=exclude_id):
+        errors.append("Tên chuyên khoa này đã tồn tại.")
+    data["name"] = name
+
+    icon = form.get("icon", "stethoscope").strip()
+    if icon not in VALID_SPECIALIZATION_ICONS:
+        icon = "stethoscope"
+    data["icon"] = icon
+
+    description = form.get("description", "").strip()
+    if len(description) > 255:
+        errors.append("Mô tả tối đa 255 ký tự.")
+    data["description"] = description
 
     return data, errors

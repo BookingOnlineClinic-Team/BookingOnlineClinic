@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý chuyên khoa - Phòng Khám Đa Khoa OU{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+<section class="profile-page-section">
+  <div class="container" style="max-width: 900px;">
+
+    <div class="profile-header-group" style="display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <h1 class="section-title">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></svg>
+          <span>Quản lý chuyên khoa</span>
+        </h1>
+        <p class="section-subtitle">Thêm, sửa, khóa/mở khóa hoặc xóa chuyên khoa khám bệnh.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-open-add-modal">+ Thêm chuyên khoa</button>
+    </div>
+
+    <table class="form-table" style="width:100%; border-collapse:collapse; margin-top:16px;">
+      <thead>
+        <tr style="text-align:left; border-bottom:1px solid var(--color-border);">
+          <th style="padding:10px 8px;">Tên chuyên khoa</th>
+          <th style="padding:10px 8px;">Mô tả</th>
+          <th style="padding:10px 8px;">Số bác sĩ</th>
+          <th style="padding:10px 8px;">Trạng thái</th>
+          <th style="padding:10px 8px;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in spec_rows %}
+        <tr style="border-bottom:1px solid var(--color-border);">
+          <td style="padding:10px 8px; font-weight:600;">{{ row.spec.name }}</td>
+          <td style="padding:10px 8px; color:var(--color-text-secondary); font-size:13px;">{{ row.spec.description or '—' }}</td>
+          <td style="padding:10px 8px;">{{ row.doctor_count }}</td>
+          <td style="padding:10px 8px;">
+            {% if row.spec.active %}
+            <span style="color:#1a7f37; font-weight:600; font-size:13px;">Đang mở</span>
+            {% else %}
+            <span style="color:#b42318; font-weight:600; font-size:13px;">Đã khóa</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px 8px; white-space:nowrap;">
+            <button type="button" class="btn btn-secondary btn-sm btn-edit-spec"
+                    data-id="{{ row.spec.id }}" data-name="{{ row.spec.name }}"
+                    data-icon="{{ row.spec.icon }}" data-description="{{ row.spec.description or '' }}">
+              Sửa
+            </button>
+
+            <form method="POST" action="{{ url_for('admin_specialization_toggle_active', specialization_id=row.spec.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-secondary btn-sm">
+                {{ 'Khóa' if row.spec.active else 'Mở khóa' }}
+              </button>
+            </form>
+
+            <form method="POST" action="{{ url_for('admin_specialization_delete', specialization_id=row.spec.id) }}"
+                  style="display:inline;"
+                  onsubmit="return confirm('Xóa chuyên khoa \'{{ row.spec.name }}\'? Hành động này không thể hoàn tác.');">
+              <button type="submit" class="btn btn-danger btn-sm" {% if row.doctor_count > 0 %}title="Đang có {{ row.doctor_count }} bác sĩ, không thể xóa"{% endif %}>
+                Xóa
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="padding:16px 8px; text-align:center; color:var(--color-text-secondary);">Chưa có chuyên khoa nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-backdrop" id="modal-specialization">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="spec-modal-title-inner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></svg>
+        <span id="spec-modal-title-text">Thêm chuyên khoa</span>
+      </h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modal-specialization')" aria-label="Đóng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form method="POST" id="spec-form" action="{{ url_for('admin_specializations') }}">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Tên chuyên khoa <span class="required">*</span></label>
+          <input type="text" name="name" id="spec-name" class="form-control" maxlength="120" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea name="description" id="spec-description" class="form-control" maxlength="255" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-specialization')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const specModalTitleText = document.getElementById('spec-modal-title-text');
+  const specForm = document.getElementById('spec-form');
+  const specNameInput = document.getElementById('spec-name');
+<!--  const specIconInput = document.getElementById('spec-icon');-->
+  const specDescInput = document.getElementById('spec-description');
+
+  document.getElementById('btn-open-add-modal').addEventListener('click', () => {
+    specModalTitleText.textContent = 'Thêm chuyên khoa';
+    specForm.action = "{{ url_for('admin_specializations') }}";
+    specNameInput.value = '';
+<!--    specIconInput.value = 'stethoscope';-->
+    specDescInput.value = '';
+    openModal('modal-specialization');
+  });
+
+  document.querySelectorAll('.btn-edit-spec').forEach(btn => {
+    btn.addEventListener('click', () => {
+      specModalTitleText.textContent = 'Sửa chuyên khoa';
+      specForm.action = `/admin/specializations/${btn.dataset.id}/edit`;
+      specNameInput.value = btn.dataset.name;
+<!--      specIconInput.value = btn.dataset.icon;-->
+      specDescInput.value = btn.dataset.description;
+      openModal('modal-specialization');
+    });
+  });
+</script>
+{% endblock %}

@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const userBtn = document.getElementById('user-profile-btn');
   const userDropdown = document.getElementById('user-profile-menu');
-
   if (userBtn && userDropdown) {
     userBtn.addEventListener('click', (e) => {
       e.stopPropagation();
