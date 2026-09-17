@@ -228,10 +228,15 @@
       </p>
     </div>
     <div>
-      <button type="button" class="chatbot-preview-bubble" onclick="showToast('Tính năng Chatbot tư vấn: Bạn có thể gõ \'Tôi bị đau nửa đầu và buồn nôn\' để được gợi ý chuyên khoa Nội thần kinh.', 'info')">
+    <!--  bichnhu    -->
+      <button type="button" class="chatbot-preview-bubble" id="chatbot-preview-bubble"
+        {% if not current_user.is_authenticated %}
+        onclick="window.location.href='{{ url_for('login') }}'"
+        {% endif %}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0077B6" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span>"Gợi ý chuyên khoa khám cho tôi..."</span>
       </button>
+    <!--  bichnhu    -->
     </div>
   </div>
 </section>

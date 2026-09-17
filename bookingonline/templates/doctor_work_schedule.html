@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch làm việc - Phòng Khám Đa Khoa OU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="doctor-work-schedule-section">
+    <div class="container">
+        <div class="doctor-work-schedule-header">
+            <div>
+                <div class="doctor-work-schedule-eyebrow">LỊCH LÀM VIỆC BÁC SĨ</div>
+                <h1 class="section-title">Lịch làm việc của tôi</h1>
+                <p class="section-subtitle">Theo dõi ca làm việc và các lịch hẹn trong từng ngày.</p>
+            </div>
+
+            <div class="doctor-work-schedule-header-right">
+                <div class="doctor-work-schedule-profile">
+                    <div class="doctor-work-schedule-avatar">
+                        {{ doctor.user.name.split(' ')[-1][0] if doctor.user and doctor.user.name else 'B' }}
+                    </div>
+                    <div>
+                        <div class="doctor-work-schedule-name">{{ doctor.user.name }}</div>
+                        <div class="doctor-work-schedule-specialty">{{ doctor.specialization.name }}</div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('doctor_work_schedule_config') }}" class="btn btn-primary btn-sm">
+                    Cấu hình lịch tuần kế tiếp
+                </a>
+            </div>
+        </div>
+
+        <div class="doctor-week-toolbar">
+            {% if can_go_previous %}
+                <a href="{{ url_for('doctor_work_schedule', week=previous_week.strftime('%Y-%m-%d')) }}"
+                   class="btn btn-outline btn-sm">← Tuần trước</a>
+            {% else %}
+                <span class="btn btn-outline btn-sm disabled">← Tuần trước</span>
+            {% endif %}
+
+            <div class="doctor-week-current">
+                <div class="doctor-week-label">TUẦN ĐANG XEM</div>
+                <div class="doctor-week-range">
+                    {{ week_start.strftime('%d/%m/%Y') }} - {{ week_end.strftime('%d/%m/%Y') }}
+                </div>
+            </div>
+
+            {% if can_go_next %}
+                <a href="{{ url_for('doctor_work_schedule', week=next_week.strftime('%Y-%m-%d')) }}"
+                   class="btn btn-outline btn-sm">Tuần sau →</a>
+            {% else %}
+                <span class="btn btn-outline btn-sm disabled">Tuần sau →</span>
+            {% endif %}
+        </div>
+
+        <div class="doctor-work-time-summary">
+            <div class="doctor-work-time-summary-content">
+                <div class="doctor-work-time-title">Khung giờ làm việc của phòng khám</div>
+                <div class="doctor-work-time-list">
+                    <div class="doctor-work-time-item">
+                        <span class="doctor-session-dot morning"></span>
+                        <span>Ca sáng: <strong>{{ config.morningStartTime.strftime('%H:%M') }} - {{ config.morningEndTime.strftime('%H:%M') }}</strong></span>
+                    </div>
+                    <div class="doctor-work-time-item">
+                        <span class="doctor-session-dot afternoon"></span>
+                        <span>Ca chiều: <strong>{{ config.afternoonStartTime.strftime('%H:%M') }} - {{ config.afternoonEndTime.strftime('%H:%M') }}</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% set weekday_names = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'] %}
+
+        <div class="doctor-view-week-grid">
+            {% for day in week_days %}
+            <article class="doctor-view-day-card {% if day.date == today %}today{% endif %}">
+                <div class="doctor-view-day-header">
+                    <div>
+                        <div class="doctor-view-day-name">{{ weekday_names[loop.index0] }}</div>
+                        <div class="doctor-view-day-date">{{ day.date.strftime('%d/%m/%Y') }}</div>
+                    </div>
+                    {% if day.date == today %}<span class="doctor-today-badge">Hôm nay</span>{% endif %}
+                </div>
+
+                <div class="doctor-view-session {% if day.morning and day.morning.isAvailable %}active{% else %}inactive{% endif %}">
+                    <div class="doctor-view-session-header">
+                        <div class="doctor-view-session-heading">
+                            <div class="doctor-view-session-icon morning">☀</div>
+                            <div>
+                                <div class="doctor-view-session-name">Ca sáng</div>
+                                <div class="doctor-view-session-range">{{ config.morningStartTime.strftime('%H:%M') }} - {{ config.morningEndTime.strftime('%H:%M') }}</div>
+                            </div>
+                        </div>
+                        {% if day.morning and day.morning.isAvailable %}
+                            <span class="doctor-view-status working"><i></i>Làm việc</span>
+                        {% else %}
+                            <span class="doctor-view-status off"><i></i>Nghỉ</span>
+                        {% endif %}
+                    </div>
+
+                    {% if day.morning and day.morning.isAvailable %}
+                        {% if day.morning_appointments %}
+                            <div class="doctor-view-slot-label">Lịch hẹn trong ca</div>
+                            <div class="doctor-appointment-list">
+                                {% for appointment in day.morning_appointments %}
+                                <div class="doctor-appointment-item">
+                                    <strong>{{ appointment.scheduledTime.strftime('%H:%M') }}</strong>
+                                    <span>Lịch hẹn #{{ appointment.id }}</span>
+                                    <span class="doctor-appointment-status">{{ appointment.status.value if appointment.status else '' }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="doctor-view-session-empty">Ca làm việc hiện chưa có lịch hẹn.</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="doctor-view-session-empty">Không có lịch làm việc trong ca này.</div>
+                    {% endif %}
+                </div>
+
+                <div class="doctor-view-session {% if day.afternoon and day.afternoon.isAvailable %}active{% else %}inactive{% endif %}">
+                    <div class="doctor-view-session-header">
+                        <div class="doctor-view-session-heading">
+                            <div class="doctor-view-session-icon afternoon">☼</div>
+                            <div>
+                                <div class="doctor-view-session-name">Ca chiều</div>
+                                <div class="doctor-view-session-range">{{ config.afternoonStartTime.strftime('%H:%M') }} - {{ config.afternoonEndTime.strftime('%H:%M') }}</div>
+                            </div>
+                        </div>
+                        {% if day.afternoon and day.afternoon.isAvailable %}
+                            <span class="doctor-view-status working"><i></i>Làm việc</span>
+                        {% else %}
+                            <span class="doctor-view-status off"><i></i>Nghỉ</span>
+                        {% endif %}
+                    </div>
+
+                    {% if day.afternoon and day.afternoon.isAvailable %}
+                        {% if day.afternoon_appointments %}
+                            <div class="doctor-view-slot-label">Lịch hẹn trong ca</div>
+                            <div class="doctor-appointment-list">
+                                {% for appointment in day.afternoon_appointments %}
+                                <div class="doctor-appointment-item">
+                                    <strong>{{ appointment.scheduledTime.strftime('%H:%M') }}</strong>
+                                    <span>Lịch hẹn #{{ appointment.id }}</span>
+                                    <span class="doctor-appointment-status">{{ appointment.status.value if appointment.status else '' }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="doctor-view-session-empty">Ca làm việc hiện chưa có lịch hẹn.</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="doctor-view-session-empty">Không có lịch làm việc trong ca này.</div>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

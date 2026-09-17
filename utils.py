@@ -267,3 +267,217 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
         cur_date += timedelta(days=1)
     db.session.commit()
     return created
+
+# bích như - admin - cau hinh tham so
+VALID_WORKING_DAYS = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
+def validate_system_config_form(form):
+    #Validate form cấu hình hệ thống (trang Admin).
+    #Trả về (data, errors) giống các hàm validate khác trong file này.
+    errors = []
+    data = {}
+
+    # 1. Ngày làm việc chuẩn
+    working_days = [d for d in form.getlist("workingDays") if d in VALID_WORKING_DAYS]
+    if not working_days:
+        errors.append("Vui lòng chọn ít nhất 1 ngày làm việc.")
+    data["workingDays"] = ",".join(working_days) if working_days else None
+
+    # 2. Giờ làm việc (ca sáng / ca chiều)
+    def parse_time(field_name, label):
+        raw = form.get(field_name, "").strip()
+        if not raw:
+            errors.append(f"Vui lòng nhập {label}.")
+            return None
+        try:
+            return datetime.strptime(raw, "%H:%M").time()
+        except ValueError:
+            errors.append(f"{label} không đúng định dạng giờ.")
+            return None
+
+    morning_start = parse_time("morningStartTime", "giờ bắt đầu ca sáng")
+    morning_end = parse_time("morningEndTime", "giờ kết thúc ca sáng")
+    afternoon_start = parse_time("afternoonStartTime", "giờ bắt đầu ca chiều")
+    afternoon_end = parse_time("afternoonEndTime", "giờ kết thúc ca chiều")
+
+    if morning_start and morning_end and morning_end <= morning_start:
+        errors.append("Giờ kết thúc ca sáng phải sau giờ bắt đầu ca sáng.")
+    if afternoon_start and afternoon_end and afternoon_end <= afternoon_start:
+        errors.append("Giờ kết thúc ca chiều phải sau giờ bắt đầu ca chiều.")
+    if morning_end and afternoon_start and afternoon_start <= morning_end:
+        errors.append("Ca chiều phải bắt đầu sau khi ca sáng kết thúc.")
+
+    data.update({
+        "morningStartTime": morning_start,
+        "morningEndTime": morning_end,
+        "afternoonStartTime": afternoon_start,
+        "afternoonEndTime": afternoon_end,
+    })
+
+    # 3. Các trường số nguyên
+    def parse_int(field_name, label, min_v=0, max_v=None):
+        raw = form.get(field_name, "").strip()
+        if not raw:
+            errors.append(f"Vui lòng nhập {label}.")
+            return None
+        try:
+            v = int(raw)
+        except ValueError:
+            errors.append(f"{label} phải là số nguyên.")
+            return None
+        if v < min_v or (max_v is not None and v > max_v):
+            upper = max_v if max_v is not None else "∞"
+            errors.append(f"{label} phải nằm trong khoảng {min_v}-{upper}.")
+            return None
+        return v
+
+    data["maxAppointmentsPerDay"] = parse_int(
+        "maxAppointmentsPerDay", "số lịch hẹn tối đa/ngày/bệnh nhân", 1, 20)
+    data["minimumBookingTime"] = parse_int(
+        "minimumBookingTime", "thời gian tối thiểu đặt lịch trước (phút)", 0)
+    data["minimumCancellationTime"] = parse_int(
+        "minimumCancellationTime", "thời gian tối thiểu cho phép hủy lịch (phút)", 0)
+    data["refundPercentagePatient"] = parse_int(
+        "refundPercentagePatient", "% hoàn phí cho bệnh nhân", 0, 100)
+    data["refundPercentageDoctor"] = parse_int(
+        "refundPercentageDoctor", "% hoàn phí cho bác sĩ", 0, 100)
+
+    return data, errors
+
+#bichnhu-admin-quan ly chuyen khoa
+VALID_SPECIALIZATION_ICONS = ["stethoscope", "heart-pulse", "baby", "sparkles", "activity"]
+
+def validate_specialization_form(form, exclude_id=None):
+    #Validate form thêm/sửa chuyên khoa (trang Admin).
+    errors = []
+    data = {}
+
+    name = form.get("name", "").strip()
+    if not name:
+        errors.append("Vui lòng nhập tên chuyên khoa.")
+    elif len(name) > 120:
+        errors.append("Tên chuyên khoa tối đa 120 ký tự.")
+    elif dao.is_specialization_name_taken(name, exclude_id=exclude_id):
+        errors.append("Tên chuyên khoa này đã tồn tại.")
+    data["name"] = name
+    description = form.get("description", "").strip()
+    if len(description) > 255:
+        errors.append("Mô tả tối đa 255 ký tự.")
+    data["description"] = description
+
+    return data, errors
+
+# bichnhu - admin - quản lý bác sĩ (tạo tài khoản + hồ sơ bác sĩ)
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+def validate_doctor_account_form(form, is_edit=False):
+    # is_edit=False -> validate cả username/password (khi ADMIN TẠO MỚI bác sĩ)
+    # is_edit=True  -> bỏ qua username/password (khi ADMIN SỬA hồ sơ bác sĩ đã có)
+    errors = []
+    data = {}
+
+    name = form.get("name", "").strip()
+    if not name:
+        errors.append("Vui lòng nhập họ tên bác sĩ.")
+    data["name"] = name
+
+    email = form.get("email", "").strip()
+    if not email or not EMAIL_REGEX.match(email):
+        errors.append("Email không hợp lệ.")
+    data["email"] = email
+
+    phone = form.get("phone", "").strip()
+    if phone and not is_valid_phone(phone):
+        errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).")
+    data["phone"] = phone or None
+
+    gender_raw = form.get("gender", "").strip()
+    gender = None
+    if gender_raw:
+        try:
+            gender = GenderEnum[gender_raw]
+        except KeyError:
+            errors.append("Giới tính không hợp lệ.")
+    data["gender"] = gender
+
+    # Chuyên khoa
+    spec_raw = form.get("specializationId", "").strip()
+    specialization_id = None
+    if not spec_raw:
+        errors.append("Vui lòng chọn chuyên khoa.")
+    else:
+        try:
+            specialization_id = int(spec_raw)
+        except ValueError:
+            errors.append("Chuyên khoa không hợp lệ.")
+        else:
+            if not dao.get_specialization_by_id(specialization_id):
+                errors.append("Chuyên khoa không tồn tại.")
+    data["specialization_id"] = specialization_id
+
+    license_number = form.get("licenseNumber", "").strip()
+    if not license_number:
+        errors.append("Vui lòng nhập số chứng chỉ hành nghề.")
+    elif len(license_number) > 50:
+        errors.append("Số chứng chỉ hành nghề tối đa 50 ký tự.")
+    data["license_number"] = license_number
+
+    experience_yrs_raw = form.get("experienceYrs", "").strip()
+    experience_yrs = None
+    if not experience_yrs_raw:
+        errors.append("Vui lòng nhập số năm kinh nghiệm.")
+    else:
+        try:
+            experience_yrs = int(experience_yrs_raw)
+            if experience_yrs < 0 or experience_yrs > 70:
+                errors.append("Số năm kinh nghiệm không hợp lệ (0-70).")
+        except ValueError:
+            errors.append("Số năm kinh nghiệm phải là số nguyên.")
+    data["experience_yrs"] = experience_yrs
+
+    fee_raw = form.get("fee", "").strip()
+    fee = None
+    if not fee_raw:
+        errors.append("Vui lòng nhập chi phí khám.")
+    else:
+        try:
+            fee = float(fee_raw)
+            if fee <= 0:
+                errors.append("Chi phí khám phải lớn hơn 0.")
+        except ValueError:
+            errors.append("Chi phí khám phải là số.")
+    data["fee"] = fee
+
+    description = form.get("description", "").strip()
+    data["description"] = description or None
+
+    bio = form.get("bio", "").strip()
+    data["bio"] = bio or None
+
+    avatar_url = form.get("avatarUrl", "").strip()
+    if avatar_url and not (avatar_url.startswith("http://") or avatar_url.startswith("https://")):
+        errors.append("Avatar URL phải bắt đầu bằng http:// hoặc https://.")
+    data["avatar_url"] = avatar_url or None
+
+    # Chỉ validate username/password khi TẠO MỚI, không đụng vào khi SỬA
+    if not is_edit:
+        username = form.get("username", "").strip()
+        password = form.get("password", "")
+        confirm_password = form.get("confirmPassword", "")
+
+        if not username:
+            errors.append("Vui lòng nhập tên đăng nhập.")
+        elif len(username) < 4:
+            errors.append("Tên đăng nhập tối thiểu 4 ký tự.")
+        elif dao.is_username_taken(username):
+            errors.append("Tên đăng nhập này đã được sử dụng.")
+        data["username"] = username
+
+        if not password:
+            errors.append("Vui lòng nhập mật khẩu.")
+        elif len(password) < 6:
+            errors.append("Mật khẩu tối thiểu 6 ký tự.")
+        elif password != confirm_password:
+            errors.append("Xác nhận mật khẩu không khớp.")
+        data["password"] = password
+
+    return data, errors
