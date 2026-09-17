@@ -227,3 +227,45 @@ def admin_doctor_reset_password(doctor_id):
     dao.reset_doctor_password(doctor, new_password)
     flash(f"Đã đặt lại mật khẩu cho bác sĩ \"{doctor.user.name}\".", "success")
     return redirect(url_for("admin_doctors"))
+
+# bichnhu - admin - quản lý bệnh nhân (chỉ xem + khóa/mở khóa)
+@app.route("/admin/patients", methods=["GET"])
+@login_required
+@admin_required
+def admin_patients():
+    keyword = request.args.get("keyword", "").strip()
+    patients = dao.get_all_patients_admin(keyword=keyword or None)
+
+    # Gộp thêm số liệu (hồ sơ sức khỏe / lịch hẹn) cho từng dòng, để hiển thị ra bảng
+    patient_rows = [
+        {
+            "user": p,
+            "profile_count": dao.count_health_profiles_for_patient(p.id),
+            "appointment_count": dao.count_appointments_for_patient(p.id),
+        }
+        for p in patients
+    ]
+
+    return render_template(
+        "admin_patients.html",
+        active_page="admin-patients",
+        patient_rows=patient_rows,
+        keyword=keyword,
+    )
+
+
+@app.route("/admin/patients/<int:user_id>/toggle-active", methods=["POST"])
+@login_required
+@admin_required
+def admin_patient_toggle_active(user_id):
+    # Khóa/Mở khóa tài khoản bệnh nhân. Chặn cẩn thận: route này CHỈ được
+    # tác động lên tài khoản role=PATIENT, tránh trường hợp ai đó sửa tay
+    # URL để khóa nhầm tài khoản ADMIN/DOCTOR.
+    user = dao.get_user_by_id(user_id)
+    if not user or user.role != UserRoleEnum.PATIENT:
+        flash("Không tìm thấy bệnh nhân.", "error")
+        return redirect(url_for("admin_patients"))
+
+    dao.toggle_user_active(user)
+    flash(f"Đã {'mở khóa' if user.active else 'khóa'} tài khoản \"{user.name}\".", "success")
+    return redirect(url_for("admin_patients", keyword=request.args.get("keyword", "")))
