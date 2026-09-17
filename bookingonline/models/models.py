@@ -66,6 +66,9 @@ class Specialization(Base):
     name = Column(String(120), unique=True, nullable=False)
     icon = Column(String(50), default="stethoscope")
     description = Column(String(255))
+    #bichnhu
+    active = Column(Boolean, default=True, nullable=False)
+    #bichnhu
     doctors = relationship("DoctorProfile", backref="specialization")
     chatbotSessions = relationship("ChatbotSession", backref="specialization")
 

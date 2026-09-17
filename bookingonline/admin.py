@@ -50,3 +50,84 @@ def admin_settings():
         config=config,
         selected_days=set(config.workingDaysList()),
     )
+
+# bichnhu - admin - quan ly chuyen khoa
+@app.route("/admin/specializations", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_specializations():
+    if request.method == "POST":
+        data, errors = utils.validate_specialization_form(request.form)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return redirect(url_for("admin_specializations"))
+
+        dao.create_specialization(**data)
+        flash("Đã thêm chuyên khoa mới.", "success")
+        return redirect(url_for("admin_specializations"))
+
+    specializations = dao.get_all_specializations(active_only=False)
+    spec_rows = [
+        {
+            "spec": s,
+            "doctor_count": dao.count_doctors_in_specialization(s.id),
+        }
+        for s in specializations
+    ]
+    return render_template(
+        "admin_specializations.html",
+        active_page="admin-specializations",
+        spec_rows=spec_rows,
+    )
+
+
+@app.route("/admin/specializations/<int:specialization_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def admin_specialization_edit(specialization_id):
+    spec = dao.get_specialization_by_id(specialization_id)
+    if not spec:
+        flash("Không tìm thấy chuyên khoa.", "error")
+        return redirect(url_for("admin_specializations"))
+
+    data, errors = utils.validate_specialization_form(request.form, exclude_id=spec.id)
+    if errors:
+        for e in errors:
+            flash(e, "error")
+        return redirect(url_for("admin_specializations"))
+
+    dao.update_specialization(spec, **data)
+    flash("Đã cập nhật chuyên khoa.", "success")
+    return redirect(url_for("admin_specializations"))
+
+
+@app.route("/admin/specializations/<int:specialization_id>/toggle-active", methods=["POST"])
+@login_required
+@admin_required
+def admin_specialization_toggle_active(specialization_id):
+    spec = dao.get_specialization_by_id(specialization_id)
+    if not spec:
+        flash("Không tìm thấy chuyên khoa.", "error")
+        return redirect(url_for("admin_specializations"))
+
+    dao.toggle_specialization_active(spec)
+    flash(f"Đã {'mở khóa' if spec.active else 'khóa'} chuyên khoa \"{spec.name}\".", "success")
+    return redirect(url_for("admin_specializations"))
+
+
+@app.route("/admin/specializations/<int:specialization_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_specialization_delete(specialization_id):
+    spec = dao.get_specialization_by_id(specialization_id)
+    if not spec:
+        flash("Không tìm thấy chuyên khoa.", "error")
+        return redirect(url_for("admin_specializations"))
+
+    ok, error_msg = dao.delete_specialization(spec)
+    if not ok:
+        flash(error_msg, "error")
+    else:
+        flash("Đã xóa chuyên khoa.", "success")
+    return redirect(url_for("admin_specializations"))

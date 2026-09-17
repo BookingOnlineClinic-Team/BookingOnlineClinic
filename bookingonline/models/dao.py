@@ -46,7 +46,12 @@ def get_system_config():
         db.session.commit()
     return config
 
-def get_all_specializations():
+def get_all_specializations(active_only=True):
+    # bichnhu - chỉ lây những chuyên khoa active - đang mở
+    q = Specialization.query
+    if active_only:
+        q = q.filter(Specialization.active == True)
+    # bichnhu
     return Specialization.query.order_by(Specialization.name).all()
 
 def get_specialization_by_id(specialization_id):
@@ -779,3 +784,45 @@ def count_active_appointments_on_date(patient_profile_id, work_date):
         )
         .count()
     )
+
+# bichnhu - admin - quan ly chuyên khoa
+def is_specialization_name_taken(name, exclude_id=None):
+    q = Specialization.query.filter(db.func.lower(Specialization.name) == name.strip().lower())
+    if exclude_id:
+        q = q.filter(Specialization.id != exclude_id)
+    return db.session.query(q.exists()).scalar()
+
+def create_specialization(name, icon=None, description=None):
+    spec = Specialization(
+        name=name.strip(),
+        icon=(icon or "stethoscope").strip(),
+        description=(description or "").strip() or None,
+        active=True,
+    )
+    db.session.add(spec)
+    db.session.commit()
+    return spec
+
+def update_specialization(specialization, name, icon=None, description=None):
+    specialization.name = name.strip()
+    specialization.icon = (icon or "stethoscope").strip()
+    specialization.description = (description or "").strip() or None
+    db.session.commit()
+    return specialization
+
+def toggle_specialization_active(specialization):
+    #Khóa / Mở khóa chuyên khoa. Không xóa dữ liệu, chỉ ẩn/hiện khỏi luồng đặt lịch.
+    specialization.active = not specialization.active
+    db.session.commit()
+    return specialization
+
+def count_doctors_in_specialization(specialization_id):
+    return DoctorProfile.query.filter_by(specializationId=specialization_id).count()
+
+def delete_specialization(specialization):
+    #Xóa cứng. Chặn nếu còn bác sĩ trực thuộc để tránh lỗi khóa ngoại / mất dữ liệu.
+    if count_doctors_in_specialization(specialization.id) > 0:
+        return False, "Không thể xóa: chuyên khoa đang có bác sĩ trực thuộc. Hãy chuyển bác sĩ sang chuyên khoa khác, hoặc dùng chức năng Khóa thay vì Xóa."
+    db.session.delete(specialization)
+    db.session.commit()
+    return True, None
