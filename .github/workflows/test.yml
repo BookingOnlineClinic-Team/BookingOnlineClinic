@@ -27,6 +27,9 @@ jobs:
       - name: Run tests
         env:
           SQLALCHEMY_DATABASE_URI: "sqlite:///test.db"
+          PAYOS_CLIENT_ID: "test-client-id"
+          PAYOS_API_KEY: "test-api-key"
+          PAYOS_CHECKSUM_KEY: "test-checksum-key"
         run: |
           PYTHONPATH=. pytest bookingonline/test \
             --ignore=bookingonline/test/test_doctor_work_schedule.py
