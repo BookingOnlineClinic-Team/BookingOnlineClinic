@@ -982,6 +982,40 @@ def count_appointments_for_patient(user_id):
     )
 
 
+def get_review_by_appointment(appointment_id):
+    return Review.query.filter_by(appointmentId=appointment_id).first()
+
+
+def create_review(appointment, author, rating, comment=None):
+    review = Review(
+        appointmentId=appointment.id,
+        doctorId=appointment.doctorId,
+        authorId=author.id,
+        rating=rating,
+        comment=(comment or "").strip() or None,
+    )
+    db.session.add(review)
+    doctor = appointment.doctor
+    old_total = doctor.totalReview or 0
+    old_avg = doctor.averageRating or 0.0
+    new_total = old_total + 1
+    new_avg = ((old_avg * old_total) + rating) / new_total
+    doctor.totalReview = new_total
+    doctor.averageRating = round(new_avg, 2)
+    db.session.commit()
+    return review
+
+def update_appointment_status(appointment, new_status, cancel_reason=None, cancelled_by_user=None):
+    appointment.status = new_status
+    if new_status == AppointmentStatusEnum.CANCELLED:
+        if cancel_reason:
+            appointment.cancelReason = cancel_reason
+        appointment.cancelledAt = datetime.now()
+        if cancelled_by_user:
+            appointment.cancelledByUserId = cancelled_by_user.id
+    db.session.commit()
+    return appointment
+
 def toggle_user_active(user):
     # Khóa / Mở khóa tài khoản (dùng chung được cho patient, doctor...).
     # active=False -> không login được nữa (verify_login đã kiểm tra user.active).
