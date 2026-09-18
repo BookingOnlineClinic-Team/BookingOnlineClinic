@@ -6,6 +6,50 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/success.css') }}">
+<style>
+  .appt-filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 4px;
+  }
+  .appt-filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px 10px 0 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .appt-filter-tab:hover {
+    color: var(--color-accent);
+    background: var(--color-bg-soft);
+  }
+  .appt-filter-tab.active {
+    color: var(--color-accent);
+    background: var(--color-bg-soft);
+    box-shadow: inset 0 -3px 0 var(--color-accent);
+  }
+  .appt-filter-tab .count {
+    background: rgba(0,0,0,0.08);
+    color: inherit;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 12px;
+  }
+  .appt-filter-tab.active .count {
+    background: var(--color-accent);
+    color: #FFFFFF;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -22,9 +66,33 @@
     </div>
 
     {% if appointments %}
-    <div style="display:flex; flex-direction:column; gap:16px;">
+    {% set all_count = appointments|length %}
+    {% set confirmed_count = appointments|selectattr('status.value', 'equalto', 'CONFIRMED')|list|length %}
+    {% set completed_count = appointments|selectattr('status.value', 'equalto', 'COMPLETED')|list|length %}
+    {% set cancelled_count = appointments|selectattr('status.value', 'equalto', 'CANCELLED')|list|length %}
+    {% set noshow_count = appointments|selectattr('status.value', 'equalto', 'NO_SHOW')|list|length %}
+
+    <div class="appt-filter-tabs" id="appt-filter-tabs">
+      <button type="button" class="appt-filter-tab active" data-filter="ALL">
+        Tất cả <span class="count">{{ all_count }}</span>
+      </button>
+      <button type="button" class="appt-filter-tab" data-filter="CONFIRMED">
+        Đã xác nhận <span class="count">{{ confirmed_count }}</span>
+      </button>
+      <button type="button" class="appt-filter-tab" data-filter="COMPLETED">
+        Đã khám xong <span class="count">{{ completed_count }}</span>
+      </button>
+      <button type="button" class="appt-filter-tab" data-filter="CANCELLED">
+        Đã hủy <span class="count">{{ cancelled_count }}</span>
+      </button>
+      <button type="button" class="appt-filter-tab" data-filter="NO_SHOW">
+        Không đến khám <span class="count">{{ noshow_count }}</span>
+      </button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:16px;" id="appt-list">
       {% for a in appointments %}
-      <div class="app-card" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div class="app-card appt-item" data-status="{{ a.status.value }}" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:16px;">
           <div class="patient-avatar-circle">{{ a.doctor.user.name.split(' ')[-1][0] }}</div>
           <div>
@@ -41,6 +109,8 @@
             <span class="badge badge-primary">Đã khám xong</span>
           {% elif a.status.value == 'CANCELLED' %}
             <span class="badge badge-danger">Đã hủy</span>
+          {% elif a.status.value == 'NO_SHOW' %}
+            <span class="badge badge-warning">Không đến khám</span>
           {% else %}
             <span class="badge badge-warning">{{ a.status.value }}</span>
           {% endif %}
@@ -48,6 +118,14 @@
         </div>
       </div>
       {% endfor %}
+    </div>
+
+    <div class="profile-empty-state" id="appt-empty-filtered" style="display:none;">
+      <div class="profile-empty-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      </div>
+      <h3 class="profile-empty-title">Không có lịch hẹn nào ở trạng thái này</h3>
+      <p class="profile-empty-desc">Hãy thử chọn tab khác để xem các cuộc hẹn còn lại.</p>
     </div>
     {% else %}
     <div class="profile-empty-state">
@@ -63,4 +141,36 @@
   </div>
 </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('#appt-filter-tabs .appt-filter-tab');
+  const items = document.querySelectorAll('#appt-list .appt-item');
+  const emptyFiltered = document.getElementById('appt-empty-filtered');
+  const listEl = document.getElementById('appt-list');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const filter = tab.getAttribute('data-filter');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const match = (filter === 'ALL' || item.getAttribute('data-status') === filter);
+        item.style.display = match ? 'flex' : 'none';
+        if (match) visibleCount++;
+      });
+
+      if (emptyFiltered && listEl) {
+        emptyFiltered.style.display = visibleCount === 0 ? 'block' : 'none';
+        listEl.style.display = visibleCount === 0 ? 'none' : 'flex';
+      }
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -3,6 +3,7 @@ from bookingonline.models import dao
 from bookingonline import db, app
 from bookingonline.models.models import *
 
+
 def find_slot(work_schedules, doctor, work_date, session):
     return next(
         (ws for ws in work_schedules
@@ -22,13 +23,13 @@ def seed():
     # ---------------------------------------------------
     config = SystemConfig(
         id=1,
-        minimumBookingTime=60,
-        minimumCancellationTime=120,
+        minimumBookingTime=45,
+        minimumCancellationTime=180,
         workingDays="MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY",
-        morningStartTime=time(7, 30),
-        morningEndTime=time(11, 30),
-        afternoonStartTime=time(13, 0),
-        afternoonEndTime=time(17, 0),
+        morningStartTime=time(8, 0),
+        morningEndTime=time(12, 0),
+        afternoonStartTime=time(13, 30),
+        afternoonEndTime=time(17, 30),
         maxAppointmentsPerDay=1,
         refundPercentagePatient=100,
         refundPercentageDoctor=100,
@@ -38,102 +39,102 @@ def seed():
     # ---------------------------------------------------
     # 2. Specialization
     # ---------------------------------------------------
-    spec_noi = Specialization(name="Nội tổng quát", icon="stethoscope",
-                               description="Khám và điều trị các bệnh lý nội khoa tổng quát.")
-    spec_nhi = Specialization(name="Nhi khoa", icon="baby",
-                               description="Khám, tư vấn dinh dưỡng và điều trị bệnh cho trẻ em.")
-    spec_da_lieu = Specialization(name="Da liễu", icon="hand-sparkles",
-                                   description="Khám và điều trị các bệnh lý về da, tóc, móng.")
-    spec_tim_mach = Specialization(name="Tim mạch", icon="heart-pulse",
-                                    description="Khám, tầm soát và điều trị các bệnh lý tim mạch.")
-    db.session.add_all([spec_noi, spec_nhi, spec_da_lieu, spec_tim_mach])
+    spec_tmh = Specialization(name="Tai Mũi Họng", icon="ear-listen",
+                               description="Khám và điều trị các bệnh lý tai, mũi, họng.")
+    spec_noi_tiet = Specialization(name="Nội tiết", icon="syringe",
+                                    description="Khám, tầm soát và điều trị tiểu đường, tuyến giáp.")
+    spec_co_xuong_khop = Specialization(name="Cơ xương khớp", icon="bone",
+                                         description="Khám và điều trị các bệnh lý xương khớp, thoái hóa.")
+    spec_mat = Specialization(name="Mắt", icon="eye",
+                               description="Khám, đo thị lực và điều trị các bệnh lý về mắt.")
+    db.session.add_all([spec_tmh, spec_noi_tiet, spec_co_xuong_khop, spec_mat])
     db.session.flush()  # để có id trước khi tham chiếu bên dưới
 
     # ---------------------------------------------------
     # 3. Users: admin, doctors, patients
     # ---------------------------------------------------
     admin = User(
-        name="Quản trị viên",
+        name="Đỗ Minh Quản",
         username="admin",
-        email="admin@clinic.vn",
+        email="admin@phongkham.vn",
         password="Admin@123",
         role=UserRoleEnum.ADMIN,
         gender=GenderEnum.MALE,
-        phone="0900000000",
+        phone="0900123456",
     )
 
     doctor_user_1 = User(
-        name="BS. Nguyễn Thị Hoa",
-        username="d1",
-        email="phuquy141105@gmail.com",
+        name="BS. Vũ Thị Ngọc Lan",
+        username="bs.lan",
+        email="lan.vu@phongkham.vn",
         password="Doctor@123",
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.FEMALE,
-        phone="0901111111",
+        phone="0905111222",
     )
     doctor_user_2 = User(
-        name="BS. Trần Văn Nam",
-        username="d2",
-        email="phuquy141105@gmail.com",
+        name="BS. Hoàng Đức Thắng",
+        username="bs.thang",
+        email="thang.hoang@phongkham.vn",
         password="Doctor@123",
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.MALE,
-        phone="0902222222",
+        phone="0905222333",
     )
     doctor_user_3 = User(
-        name="BS. Phạm Thuỳ Linh",
-        username="d3",
-        email="phuquy141105@gmail.com",
+        name="BS. Đặng Thị Kim Yến",
+        username="bs.yen",
+        email="yen.dang@phongkham.vn",
         password="Doctor@123",
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.FEMALE,
-        phone="0903333333",
+        phone="0905333444",
     )
     doctor_user_4 = User(
-        name="BS. Lê Quốc Huy",
-        username="d4",
-        email="phuquy141105@gmail.com",
+        name="BS. Ngô Bảo Long",
+        username="bs.long",
+        email="long.ngo@phongkham.vn",
         password="Doctor@123",
         role=UserRoleEnum.DOCTOR,
         gender=GenderEnum.MALE,
-        phone="0904444444",
+        phone="0905444555",
     )
 
     patient_user_1 = User(
-        name="Nguyễn Văn Bình",
-        username="p1",
-        email="phuquy141105@gmail.com",
+        name="Trịnh Văn Phúc",
+        username="phuc.trinh",
+        email="phuc.trinh@gmail.com",
         password="Patient@123",
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.MALE,
-        phone="0911111111",
+        phone="0918111222",
     )
     patient_user_2 = User(
-        name="Trần Thị Mai",
-        username="p2",
-        email="phuquy141105@gmail.com",
+        name="Bùi Thị Ngọc Anh",
+        username="ngocanh.bui",
+        email="ngocanh.bui@gmail.com",
         password="Patient@123",
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.FEMALE,
-        phone="0912222222",
+        phone="0918222333",
     )
     patient_user_3 = User(
-        name="Lê Văn Cường",
-        username="p3",
-        email="phuquy141105@gmail.com",
+        name="Dương Quốc Việt",
+        username="viet.duong",
+        email="viet.duong@gmail.com",
         password="Patient@123",
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.MALE,
-        phone="0913333333",
+        phone="0918333444",
     )
     patient_user_4 = User(
-        name="Phạm Thị Hạnh",
-        username="p4",
-        email="phuquy141105@gmail.com",
+        name="Lâm Thị Thu Trang",
+        username="trang.lam",
+        email="trang.lam@gmail.com",
         password="Patient@123",
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.FEMALE,
-        phone="0914444444",
+        phone="0918444555",
     )
 
     db.session.add_all([
@@ -148,55 +149,55 @@ def seed():
     # ---------------------------------------------------
     doctor_1 = DoctorProfile(
         user=doctor_user_1,
-        specialization=spec_noi,
-        licenseNumber="BS-001-2015",
-        experienceYrs=10,
-        description="Chuyên khám và điều trị các bệnh lý nội tổng quát.",
-        bio="Tốt nghiệp Đại học Y Dược TP.HCM, 10 năm kinh nghiệm.",
-        room="Phòng 101, Lầu 1",
+        specialization=spec_tmh,
+        licenseNumber="BS-TMH-2014",
+        experienceYrs=12,
+        description="Chuyên khám và điều trị viêm xoang, viêm họng, viêm tai giữa.",
+        bio="Tốt nghiệp Đại học Y Hà Nội, 12 năm kinh nghiệm Tai Mũi Họng.",
+        room="Phòng 102, Lầu 1",
         totalReview=2,
         averageRating=4.5,
-        avatarUrl="https://example.com/avatars/bs_hoa.jpg",
-        fee=250000,
+        avatarUrl="https://example.com/avatars/bs_lan.jpg",
+        fee=230000,
     )
     doctor_2 = DoctorProfile(
         user=doctor_user_2,
-        specialization=spec_tim_mach,
-        licenseNumber="BS-002-2012",
-        experienceYrs=13,
-        description="Chuyên khoa Tim mạch, siêu âm tim, điện tâm đồ.",
-        bio="13 năm kinh nghiệm tại các bệnh viện tuyến trung ương.",
-        room="Phòng 202, Lầu 2",
+        specialization=spec_noi_tiet,
+        licenseNumber="BS-NT-2011",
+        experienceYrs=14,
+        description="Chuyên khoa Nội tiết, kiểm soát đường huyết, bệnh lý tuyến giáp.",
+        bio="14 năm kinh nghiệm tại các bệnh viện tuyến trung ương.",
+        room="Phòng 203, Lầu 2",
         totalReview=1,
         averageRating=5.0,
-        avatarUrl="https://example.com/avatars/bs_nam.jpg",
-        fee=300000,
+        avatarUrl="https://example.com/avatars/bs_thang.jpg",
+        fee=280000,
     )
     doctor_3 = DoctorProfile(
         user=doctor_user_3,
-        specialization=spec_nhi,
-        licenseNumber="BS-003-2018",
-        experienceYrs=7,
-        description="Chuyên khám nhi, tư vấn dinh dưỡng trẻ em.",
-        bio="7 năm kinh nghiệm khám nhi khoa.",
-        room="Phòng 105, Lầu 1",
+        specialization=spec_co_xuong_khop,
+        licenseNumber="BS-CXK-2017",
+        experienceYrs=8,
+        description="Chuyên khám và điều trị đau lưng, thoái hóa khớp, loãng xương.",
+        bio="8 năm kinh nghiệm khám cơ xương khớp.",
+        room="Phòng 106, Lầu 1",
         totalReview=0,
         averageRating=0.0,
-        avatarUrl="https://example.com/avatars/bs_linh.jpg",
-        fee=200000,
+        avatarUrl="https://example.com/avatars/bs_yen.jpg",
+        fee=210000,
     )
     doctor_4 = DoctorProfile(
         user=doctor_user_4,
-        specialization=spec_da_lieu,
-        licenseNumber="BS-004-2020",
-        experienceYrs=5,
-        description="Chuyên khám và điều trị các bệnh lý về da liễu, thẩm mỹ da.",
-        bio="5 năm kinh nghiệm khám da liễu tại các phòng khám tư nhân.",
-        room="Phòng 301, Lầu 3",
+        specialization=spec_mat,
+        licenseNumber="BS-MAT-2019",
+        experienceYrs=6,
+        description="Chuyên khám khúc xạ, đo thị lực, điều trị viêm kết mạc.",
+        bio="6 năm kinh nghiệm khám mắt tại các phòng khám tư nhân.",
+        room="Phòng 302, Lầu 3",
         totalReview=0,
         averageRating=0.0,
-        avatarUrl="https://example.com/avatars/bs_huy.jpg",
-        fee=220000,
+        avatarUrl="https://example.com/avatars/bs_long.jpg",
+        fee=190000,
     )
 
     db.session.add_all([doctor_1, doctor_2, doctor_3, doctor_4])
@@ -205,62 +206,62 @@ def seed():
     # ---------------------------------------------------
     # 5. PatientHealthProfile
     #    -> MỌI bệnh nhân (role PATIENT) đều có ít nhất 1 hồ sơ sức khỏe.
-    #    - Bình: 1 hồ sơ cho chính mình
-    #    - Mai: 2 hồ sơ (chính mình + con)
-    #    - Cường: 1 hồ sơ cho chính mình
-    #    - Hạnh: 2 hồ sơ (chính mình + con)
+    #    - Phúc: 1 hồ sơ cho chính mình
+    #    - Ngọc Anh: 2 hồ sơ (chính mình + con)
+    #    - Việt: 1 hồ sơ cho chính mình
+    #    - Thu Trang: 2 hồ sơ (chính mình + con)
     # ---------------------------------------------------
-    profile_binh = PatientHealthProfile(
+    profile_phuc = PatientHealthProfile(
         owner=patient_user_1,
-        name="Nguyễn Văn Bình",
-        phone="0911111111",
+        name="Trịnh Văn Phúc",
+        phone="0918111222",
         gender=GenderEnum.MALE,
-        dateOfBirth=date(1990, 5, 20),
-        address="12 Nguyễn Trãi, Quận 1, TP.HCM",
+        dateOfBirth=date(1991, 6, 12),
+        address="10 Hai Bà Trưng, Quận 1, TP.HCM",
     )
-    profile_mai = PatientHealthProfile(
+    profile_ngocanh = PatientHealthProfile(
         owner=patient_user_2,
-        name="Trần Thị Mai",
-        phone="0912222222",
+        name="Bùi Thị Ngọc Anh",
+        phone="0918222333",
         gender=GenderEnum.FEMALE,
-        dateOfBirth=date(1988, 3, 15),
-        address="45 Lê Lợi, Quận 3, TP.HCM",
+        dateOfBirth=date(1989, 4, 22),
+        address="56 Nguyễn Đình Chiểu, Quận 3, TP.HCM",
     )
-    profile_con_mai = PatientHealthProfile(
-        owner=patient_user_2,  # đặt lịch hộ: vẫn thuộc tài khoản của Mai
-        name="Trần Gia Bảo",
-        phone="0912222222",
-        gender=GenderEnum.MALE,
-        dateOfBirth=date(2019, 7, 1),
-        address="45 Lê Lợi, Quận 3, TP.HCM",
+    profile_con_ngocanh = PatientHealthProfile(
+        owner=patient_user_2,  # đặt lịch hộ: vẫn thuộc tài khoản của Ngọc Anh
+        name="Bùi Gia Hân",
+        phone="0918222333",
+        gender=GenderEnum.FEMALE,
+        dateOfBirth=date(2018, 9, 5),
+        address="56 Nguyễn Đình Chiểu, Quận 3, TP.HCM",
     )
-    profile_cuong = PatientHealthProfile(
+    profile_viet = PatientHealthProfile(
         owner=patient_user_3,
-        name="Lê Văn Cường",
-        phone="0913333333",
+        name="Dương Quốc Việt",
+        phone="0918333444",
         gender=GenderEnum.MALE,
-        dateOfBirth=date(1995, 11, 2),
-        address="78 Cách Mạng Tháng 8, Quận 10, TP.HCM",
+        dateOfBirth=date(1996, 1, 30),
+        address="89 Cách Mạng Tháng 8, Quận 10, TP.HCM",
     )
-    profile_hanh = PatientHealthProfile(
+    profile_trang = PatientHealthProfile(
         owner=patient_user_4,
-        name="Phạm Thị Hạnh",
-        phone="0914444444",
+        name="Lâm Thị Thu Trang",
+        phone="0918444555",
         gender=GenderEnum.FEMALE,
-        dateOfBirth=date(1992, 9, 9),
-        address="23 Điện Biên Phủ, Bình Thạnh, TP.HCM",
+        dateOfBirth=date(1993, 12, 18),
+        address="34 Điện Biên Phủ, Bình Thạnh, TP.HCM",
     )
-    profile_con_hanh = PatientHealthProfile(
+    profile_con_trang = PatientHealthProfile(
         owner=patient_user_4,  # đặt lịch hộ cho con
-        name="Phạm Gia Khang",
-        phone="0914444444",
+        name="Lâm Gia Bảo",
+        phone="0918444555",
         gender=GenderEnum.MALE,
-        dateOfBirth=date(2020, 2, 14),
-        address="23 Điện Biên Phủ, Bình Thạnh, TP.HCM",
+        dateOfBirth=date(2021, 3, 8),
+        address="34 Điện Biên Phủ, Bình Thạnh, TP.HCM",
     )
     db.session.add_all([
-        profile_binh, profile_mai, profile_con_mai,
-        profile_cuong, profile_hanh, profile_con_hanh,
+        profile_phuc, profile_ngocanh, profile_con_ngocanh,
+        profile_viet, profile_trang, profile_con_trang,
     ])
     db.session.flush()
 
@@ -279,16 +280,16 @@ def seed():
                 doctor=doctor,
                 workDate=work_date,
                 session=WorkScheduleSessionEnum.MORNING,
-                startTime=time(7, 30),
-                endTime=time(11, 30),
+                startTime=time(8, 0),
+                endTime=time(12, 0),
                 isAvailable=True,
             ))
             work_schedules.append(WorkSchedule(
                 doctor=doctor,
                 workDate=work_date,
                 session=WorkScheduleSessionEnum.AFTERNOON,
-                startTime=time(13, 0),
-                endTime=time(17, 0),
+                startTime=time(13, 30),
+                endTime=time(17, 30),
                 isAvailable=True,
             ))
     db.session.add_all(work_schedules)
@@ -304,17 +305,17 @@ def seed():
     # ---------------------------------------------------
     chatbot_session_1 = ChatbotSession(
         user=patient_user_1,
-        specialization=spec_noi,
+        specialization=spec_tmh,
         bookedDate=monday_this_week,
-        queryText="Tôi bị đau bụng âm ỉ vùng thượng vị, kèm buồn nôn 2 ngày nay.",
-        aiRequirements="Phân tích triệu chứng liên quan tiêu hóa / nội tổng quát.",
+        queryText="Tôi bị nghẹt mũi, đau họng và ù tai 3 ngày nay.",
+        aiRequirements="Phân tích triệu chứng liên quan tai mũi họng.",
     )
     chatbot_session_2 = ChatbotSession(
         user=patient_user_3,
-        specialization=spec_da_lieu,
+        specialization=spec_mat,
         bookedDate=tuesday_this_week,
-        queryText="Da mặt tôi nổi mẩn đỏ, ngứa rát 3 ngày nay, nghi dị ứng mỹ phẩm.",
-        aiRequirements="Phân tích triệu chứng liên quan da liễu / dị ứng.",
+        queryText="Mắt tôi mờ dần, hay chảy nước mắt và cộm khi nhìn màn hình lâu.",
+        aiRequirements="Phân tích triệu chứng liên quan mắt / khúc xạ.",
     )
     db.session.add_all([chatbot_session_1, chatbot_session_2])
     db.session.flush()
@@ -323,17 +324,17 @@ def seed():
         session=chatbot_session_1,
         doctor=doctor_1,
         availableDate=monday_this_week,
-        startTime=time(8, 0),
-        endTime=time(8, 30),
-        reason="Triệu chứng phù hợp chuyên khoa Nội tổng quát.",
+        startTime=time(8, 30),
+        endTime=time(9, 0),
+        reason="Triệu chứng phù hợp chuyên khoa Tai Mũi Họng.",
     )
     suggestion_2 = ChatbotDoctorSuggestion(
         session=chatbot_session_2,
         doctor=doctor_4,
         availableDate=tuesday_this_week,
-        startTime=time(8, 0),
-        endTime=time(8, 30),
-        reason="Triệu chứng phù hợp chuyên khoa Da liễu.",
+        startTime=time(8, 30),
+        endTime=time(9, 0),
+        reason="Triệu chứng phù hợp chuyên khoa Mắt.",
     )
     db.session.add_all([suggestion_1, suggestion_2])
     db.session.flush()
@@ -344,81 +345,81 @@ def seed():
     appointments = []
     payments = []
 
-    # 8.1 Sinh từ gợi ý chatbot - Bình khám Nội với BS. Hoa (CONFIRMED, đã thanh toán)
+    # 8.1 Sinh từ gợi ý chatbot - Phúc khám TMH với BS. Lan (CONFIRMED, đã thanh toán)
     appointment_1 = Appointment(
-        patientProfile=profile_binh,
+        patientProfile=profile_phuc,
         doctor=doctor_1,
         workSchedule=slot_doctor1_mon_morning,
         chatbotSuggestion=suggestion_1,
         scheduledDate=monday_this_week,
-        scheduledTime=time(8, 0),
+        scheduledTime=time(8, 30),
         status=AppointmentStatusEnum.CONFIRMED,
-        reason="Đau bụng âm ỉ vùng thượng vị, buồn nôn.",
+        reason="Nghẹt mũi, đau họng, ù tai.",
     )
     payment_1 = Payment(
         appointment=appointment_1,
         amount=doctor_1.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0001",
-        checkoutUrl="https://payos.vn/checkout/TXN-0001",
-        qrCode="QR-CODE-TXN-0001",
+        transactionId="TXN-1001",
+        checkoutUrl="https://payos.vn/checkout/TXN-1001",
+        qrCode="QR-CODE-TXN-1001",
         paidAt=datetime.now(),
     )
     appointments.append(appointment_1)
     payments.append(payment_1)
 
-    # 8.2 Mai đặt hộ cho con (Bảo) khám Nhi với BS. Linh (CONFIRMED, đã thanh toán)
+    # 8.2 Ngọc Anh đặt hộ cho con (Hân) khám Cơ xương khớp với BS. Yến (CONFIRMED, đã thanh toán)
     appointment_2 = Appointment(
-        patientProfile=profile_con_mai,
+        patientProfile=profile_con_ngocanh,
         doctor=doctor_3,
         workSchedule=slot_doctor3_mon_afternoon,
         scheduledDate=monday_this_week,
-        scheduledTime=time(13, 30),
+        scheduledTime=time(14, 0),
         status=AppointmentStatusEnum.CONFIRMED,
-        reason="Khám định kỳ, tư vấn dinh dưỡng.",
+        reason="Đau nhức chân sau khi vận động mạnh.",
     )
     payment_2 = Payment(
         appointment=appointment_2,
         amount=doctor_3.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0002",
-        checkoutUrl="https://payos.vn/checkout/TXN-0002",
-        qrCode="QR-CODE-TXN-0002",
+        transactionId="TXN-1002",
+        checkoutUrl="https://payos.vn/checkout/TXN-1002",
+        qrCode="QR-CODE-TXN-1002",
         paidAt=datetime.now(),
     )
     appointments.append(appointment_2)
     payments.append(payment_2)
 
-    # 8.3 Mai khám Tim mạch với BS. Nam - đã hoàn thành tuần trước (đủ điều kiện đánh giá UC_06)
+    # 8.3 Ngọc Anh khám Nội tiết với BS. Thắng - đã hoàn thành tuần trước (đủ điều kiện đánh giá UC_06)
     last_monday = monday_this_week - timedelta(days=7)
     appointment_3 = Appointment(
-        patientProfile=profile_mai,
+        patientProfile=profile_ngocanh,
         doctor=doctor_2,
         scheduledDate=last_monday,
-        scheduledTime=time(9, 0),
+        scheduledTime=time(9, 30),
         status=AppointmentStatusEnum.COMPLETED,
-        reason="Khám tim mạch định kỳ.",
+        reason="Khám nội tiết, kiểm tra đường huyết định kỳ.",
     )
     payment_3 = Payment(
         appointment=appointment_3,
         amount=doctor_2.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0003",
-        checkoutUrl="https://payos.vn/checkout/TXN-0003",
-        qrCode="QR-CODE-TXN-0003",
-        paidAt=datetime.combine(last_monday, time(9, 0)),
+        transactionId="TXN-1003",
+        checkoutUrl="https://payos.vn/checkout/TXN-1003",
+        qrCode="QR-CODE-TXN-1003",
+        paidAt=datetime.combine(last_monday, time(9, 30)),
     )
     appointments.append(appointment_3)
     payments.append(payment_3)
 
-    # 8.4 Bình hủy lịch khám Tim mạch với BS. Nam (CANCELLED bởi bệnh nhân, hoàn phí 100%)
+    # 8.4 Phúc hủy lịch khám Nội tiết với BS. Thắng (CANCELLED bởi bệnh nhân, hoàn phí 100%)
     appointment_4 = Appointment(
-        patientProfile=profile_binh,
+        patientProfile=profile_phuc,
         doctor=doctor_2,
         scheduledDate=monday_this_week + timedelta(days=2),
-        scheduledTime=time(10, 0),
+        scheduledTime=time(10, 30),
         status=AppointmentStatusEnum.CANCELLED,
-        reason="Khám tim mạch.",
+        reason="Khám nội tiết.",
         cancelledByUser=patient_user_1,
         cancelReason="Bận việc đột xuất, không thể đến khám.",
         cancelledAt=datetime.now(),
@@ -427,133 +428,133 @@ def seed():
         appointment=appointment_4,
         amount=doctor_2.fee,
         status=PaymentStatusEnum.REFUND,
-        transactionId="TXN-0004",
-        checkoutUrl="https://payos.vn/checkout/TXN-0004",
-        qrCode="QR-CODE-TXN-0004",
+        transactionId="TXN-1004",
+        checkoutUrl="https://payos.vn/checkout/TXN-1004",
+        qrCode="QR-CODE-TXN-1004",
         paidAt=datetime.now() - timedelta(days=1),
     )
     appointments.append(appointment_4)
     payments.append(payment_4)
 
-    # 8.5 Sinh từ gợi ý chatbot - Cường khám Da liễu với BS. Huy (CONFIRMED, chưa thanh toán)
+    # 8.5 Sinh từ gợi ý chatbot - Việt khám Mắt với BS. Long (CONFIRMED, chưa thanh toán)
     appointment_5 = Appointment(
-        patientProfile=profile_cuong,
+        patientProfile=profile_viet,
         doctor=doctor_4,
         workSchedule=slot_doctor4_tue_morning,
         chatbotSuggestion=suggestion_2,
         scheduledDate=tuesday_this_week,
-        scheduledTime=time(8, 0),
+        scheduledTime=time(8, 30),
         status=AppointmentStatusEnum.CONFIRMED,
-        reason="Da mặt nổi mẩn đỏ, ngứa rát, nghi dị ứng mỹ phẩm.",
+        reason="Mắt mờ dần, cộm và chảy nước mắt.",
     )
     payment_5 = Payment(
         appointment=appointment_5,
         amount=doctor_4.fee,
         status=PaymentStatusEnum.PENDING,
-        transactionId="TXN-0005",
-        checkoutUrl="https://payos.vn/checkout/TXN-0005",
-        qrCode="QR-CODE-TXN-0005",
+        transactionId="TXN-1005",
+        checkoutUrl="https://payos.vn/checkout/TXN-1005",
+        qrCode="QR-CODE-TXN-1005",
         paidAt=None,
     )
     appointments.append(appointment_5)
     payments.append(payment_5)
 
-    # 8.6 Hạnh khám Nội với BS. Hoa nhưng KHÔNG đến khám (NO_SHOW), đã thanh toán trước, không hoàn phí
+    # 8.6 Thu Trang khám TMH với BS. Lan nhưng KHÔNG đến khám (NO_SHOW), đã thanh toán trước, không hoàn phí
     last_friday = monday_this_week - timedelta(days=3)
     appointment_6 = Appointment(
-        patientProfile=profile_hanh,
+        patientProfile=profile_trang,
         doctor=doctor_1,
         scheduledDate=last_friday,
-        scheduledTime=time(9, 30),
+        scheduledTime=time(10, 0),
         status=AppointmentStatusEnum.NO_SHOW,
-        reason="Đau đầu, mệt mỏi kéo dài.",
+        reason="Viêm họng, khàn tiếng kéo dài.",
     )
     payment_6 = Payment(
         appointment=appointment_6,
         amount=doctor_1.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0006",
-        checkoutUrl="https://payos.vn/checkout/TXN-0006",
-        qrCode="QR-CODE-TXN-0006",
-        paidAt=datetime.combine(last_friday, time(9, 30)) - timedelta(hours=2),
+        transactionId="TXN-1006",
+        checkoutUrl="https://payos.vn/checkout/TXN-1006",
+        qrCode="QR-CODE-TXN-1006",
+        paidAt=datetime.combine(last_friday, time(10, 0)) - timedelta(hours=2),
     )
     appointments.append(appointment_6)
     payments.append(payment_6)
 
-    # 8.7 Con của Hạnh (Khang) khám Nhi với BS. Linh - đã hoàn thành, chưa đánh giá
+    # 8.7 Con của Thu Trang (Bảo) khám Cơ xương khớp với BS. Yến - đã hoàn thành, chưa đánh giá
     two_weeks_ago_wed = monday_this_week - timedelta(days=12)
     appointment_7 = Appointment(
-        patientProfile=profile_con_hanh,
+        patientProfile=profile_con_trang,
         doctor=doctor_3,
         scheduledDate=two_weeks_ago_wed,
-        scheduledTime=time(14, 0),
+        scheduledTime=time(15, 0),
         status=AppointmentStatusEnum.COMPLETED,
-        reason="Khám định kỳ, theo dõi tăng trưởng.",
+        reason="Khám định kỳ, theo dõi phát triển xương khớp.",
     )
     payment_7 = Payment(
         appointment=appointment_7,
         amount=doctor_3.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0007",
-        checkoutUrl="https://payos.vn/checkout/TXN-0007",
-        qrCode="QR-CODE-TXN-0007",
-        paidAt=datetime.combine(two_weeks_ago_wed, time(14, 0)),
+        transactionId="TXN-1007",
+        checkoutUrl="https://payos.vn/checkout/TXN-1007",
+        qrCode="QR-CODE-TXN-1007",
+        paidAt=datetime.combine(two_weeks_ago_wed, time(15, 0)),
     )
     appointments.append(appointment_7)
     payments.append(payment_7)
 
-    # 8.8 & 8.9: Bình và Cường từng khám Nội với BS. Hoa - đã hoàn thành + đã đánh giá
+    # 8.8 & 8.9: Phúc và Việt từng khám TMH với BS. Lan - đã hoàn thành + đã đánh giá
     # (để dữ liệu review khớp với totalReview=2, averageRating=4.5 của doctor_1)
     two_weeks_ago_tue = monday_this_week - timedelta(days=13)
     appointment_8 = Appointment(
-        patientProfile=profile_binh,
+        patientProfile=profile_phuc,
         doctor=doctor_1,
         scheduledDate=two_weeks_ago_tue,
-        scheduledTime=time(8, 30),
+        scheduledTime=time(9, 0),
         status=AppointmentStatusEnum.COMPLETED,
-        reason="Đau bụng tái khám.",
+        reason="Viêm xoang tái khám.",
     )
     payment_8 = Payment(
         appointment=appointment_8,
         amount=doctor_1.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0008",
-        checkoutUrl="https://payos.vn/checkout/TXN-0008",
-        qrCode="QR-CODE-TXN-0008",
-        paidAt=datetime.combine(two_weeks_ago_tue, time(8, 30)),
+        transactionId="TXN-1008",
+        checkoutUrl="https://payos.vn/checkout/TXN-1008",
+        qrCode="QR-CODE-TXN-1008",
+        paidAt=datetime.combine(two_weeks_ago_tue, time(9, 0)),
     )
     appointments.append(appointment_8)
     payments.append(payment_8)
 
     three_weeks_ago_wed = monday_this_week - timedelta(days=19)
     appointment_9 = Appointment(
-        patientProfile=profile_cuong,
+        patientProfile=profile_viet,
         doctor=doctor_1,
         scheduledDate=three_weeks_ago_wed,
-        scheduledTime=time(10, 0),
+        scheduledTime=time(11, 0),
         status=AppointmentStatusEnum.COMPLETED,
-        reason="Khám tổng quát định kỳ.",
+        reason="Khám tổng quát tai mũi họng định kỳ.",
     )
     payment_9 = Payment(
         appointment=appointment_9,
         amount=doctor_1.fee,
         status=PaymentStatusEnum.PAID,
-        transactionId="TXN-0009",
-        checkoutUrl="https://payos.vn/checkout/TXN-0009",
-        qrCode="QR-CODE-TXN-0009",
-        paidAt=datetime.combine(three_weeks_ago_wed, time(10, 0)),
+        transactionId="TXN-1009",
+        checkoutUrl="https://payos.vn/checkout/TXN-1009",
+        qrCode="QR-CODE-TXN-1009",
+        paidAt=datetime.combine(three_weeks_ago_wed, time(11, 0)),
     )
     appointments.append(appointment_9)
     payments.append(payment_9)
 
-    # 8.10 Hạnh hủy lịch khám Da liễu, bác sĩ đang xử lý hoàn tiền (REFUND_PENDING)
+    # 8.10 Thu Trang hủy lịch khám Mắt, bác sĩ đang xử lý hoàn tiền (REFUND_PENDING)
     appointment_10 = Appointment(
-        patientProfile=profile_hanh,
+        patientProfile=profile_trang,
         doctor=doctor_4,
         scheduledDate=monday_this_week + timedelta(days=3),
-        scheduledTime=time(15, 0),
+        scheduledTime=time(16, 0),
         status=AppointmentStatusEnum.CANCELLED,
-        reason="Khám da liễu.",
+        reason="Khám mắt.",
         cancelledByUser=doctor_user_4,
         cancelReason="Bác sĩ có lịch hội chẩn đột xuất.",
         cancelledAt=datetime.now(),
@@ -562,30 +563,30 @@ def seed():
         appointment=appointment_10,
         amount=doctor_4.fee,
         status=PaymentStatusEnum.REFUND_PENDING,
-        transactionId="TXN-0010",
-        checkoutUrl="https://payos.vn/checkout/TXN-0010",
-        qrCode="QR-CODE-TXN-0010",
+        transactionId="TXN-1010",
+        checkoutUrl="https://payos.vn/checkout/TXN-1010",
+        qrCode="QR-CODE-TXN-1010",
         paidAt=datetime.now() - timedelta(days=1),
     )
     appointments.append(appointment_10)
     payments.append(payment_10)
 
-    # 8.11 Hạnh đặt lịch khám Nhi cho con nhưng thanh toán thất bại (FAILED)
+    # 8.11 Thu Trang đặt lịch khám Cơ xương khớp cho con nhưng thanh toán thất bại (FAILED)
     appointment_11 = Appointment(
-        patientProfile=profile_con_hanh,
+        patientProfile=profile_con_trang,
         doctor=doctor_3,
         scheduledDate=monday_this_week + timedelta(days=4),
-        scheduledTime=time(9, 0),
+        scheduledTime=time(9, 30),
         status=AppointmentStatusEnum.CONFIRMED,
-        reason="Ho, sổ mũi 2 ngày.",
+        reason="Kêu đau khớp gối khi chạy nhảy.",
     )
     payment_11 = Payment(
         appointment=appointment_11,
         amount=doctor_3.fee,
         status=PaymentStatusEnum.FAILED,
-        transactionId="TXN-0011",
-        checkoutUrl="https://payos.vn/checkout/TXN-0011",
-        qrCode="QR-CODE-TXN-0011",
+        transactionId="TXN-1011",
+        checkoutUrl="https://payos.vn/checkout/TXN-1011",
+        qrCode="QR-CODE-TXN-1011",
         paidAt=None,
     )
     appointments.append(appointment_11)
@@ -634,14 +635,14 @@ def seed():
         Notification(
             user=patient_user_1,
             title="Đặt lịch thành công",
-            body=f"Lịch khám với {doctor_user_1.name} vào {monday_this_week} 08:00 đã được xác nhận.",
+            body=f"Lịch khám với {doctor_user_1.name} vào {monday_this_week} 08:30 đã được xác nhận.",
             type=NotificationTypeEnum.APPOINTMENT,
             isRead=False,
         ),
         Notification(
             user=doctor_user_1,
             title="Có lịch hẹn mới",
-            body=f"Bệnh nhân {profile_binh.name} đã đặt lịch khám lúc 08:00 ngày {monday_this_week}.",
+            body=f"Bệnh nhân {profile_phuc.name} đã đặt lịch khám lúc 08:30 ngày {monday_this_week}.",
             type=NotificationTypeEnum.APPOINTMENT,
             isRead=False,
         ),
@@ -704,7 +705,7 @@ def seed():
     else:
         print("Đã xác nhận: mọi bệnh nhân đều có ít nhất 1 PatientHealthProfile.")
 
-    print("Đã seed dữ liệu mẫu thành công:")
+    print("Đã seed dữ liệu mẫu mới thành công:")
     print(f"  - Users: {User.query.count()}")
     print(f"  - PatientHealthProfile: {PatientHealthProfile.query.count()}")
     print(f"  - DoctorProfile: {DoctorProfile.query.count()}")
