@@ -12,9 +12,16 @@ from bookingonline.models import dao
 from bookingonline.models.models import (NotificationTypeEnum, WorkSchedule, WorkScheduleSessionEnum, GenderEnum)
 from bookingonline import db
 import qrcode
+import hmac
+import hashlib
+import requests
+from urllib.parse import quote
 
 mail = Mail(app)
-
+PAYOS_API_BASE = os.environ.get("PAYOS_API_BASE", "https://api-merchant.payos.vn")
+PAYOS_PAYOUT_CLIENT_ID = os.environ.get("PAYOS_PAYOUT_CLIENT_ID")
+PAYOS_PAYOUT_API_KEY = os.environ.get("PAYOS_PAYOUT_API_KEY")
+PAYOS_PAYOUT_CHECKSUM_KEY = os.environ.get("PAYOS_PAYOUT_CHECKSUM_KEY")
 PHONE_REGEX = re.compile(r"^0\d{9}$")
 
 
@@ -481,3 +488,188 @@ def validate_doctor_account_form(form, is_edit=False):
         data["password"] = password
 
     return data, errors
+
+
+def send_appointment_cancel_email(appointment, cancelled_by_role, refund_percent=None):
+    if not app.config.get("MAIL_USERNAME"):
+        app.logger.warning("MAIL_USERNAME chưa cấu hình, bỏ qua gửi mail hủy lịch.")
+        return
+
+    common_ctx = dict(
+        appointment=appointment,
+        doctor_name=appointment.doctor.user.name,
+        patient_name=appointment.patientProfile.name,
+        specialization_name=appointment.doctor.specialization.name,
+        scheduled_date=appointment.scheduledDate.strftime("%d/%m/%Y"),
+        scheduled_time=appointment.scheduledTime.strftime("%H:%M"),
+        cancel_reason=appointment.cancelReason,
+        cancelled_by_role=cancelled_by_role,
+        refund_percent=refund_percent,
+        fee=f"{int(appointment.doctor.fee):,}".replace(",", ".") + " đ",
+        refund_amount=(
+            f"{int(appointment.doctor.fee * refund_percent / 100):,}".replace(",", ".") + " đ"
+            if refund_percent is not None else None
+        ),
+    )
+    try:
+        html_patient = render_template("email_appointment_cancel.html", recipient_role="PATIENT", **common_ctx)
+        msg = Message(
+            subject="[OU Clinic] Cuộc hẹn của bạn đã được hủy",
+            recipients=[appointment.patientProfile.owner.email],
+            html=html_patient,
+        )
+        mail.send(msg)
+    except Exception as e:
+        app.logger.warning(f"Gửi mail hủy lịch cho bệnh nhân thất bại: {e}")
+    try:
+        if appointment.doctor.user and appointment.doctor.user.email:
+            html_doctor = render_template("email_appointment_cancel.html", recipient_role="DOCTOR", **common_ctx)
+            msg2 = Message(
+                subject="[OU Clinic] Một cuộc hẹn đã bị hủy",
+                recipients=[appointment.doctor.user.email],
+                html=html_doctor,
+            )
+            mail.send(msg2)
+    except Exception as e:
+        app.logger.warning(f"Gửi mail hủy lịch cho bác sĩ thất bại: {e}")
+
+
+def send_refund_completed_email(payment):
+    if not app.config.get("MAIL_USERNAME"):
+        app.logger.warning("MAIL_USERNAME chưa cấu hình, bỏ qua gửi mail hoàn tiền.")
+        return
+    appointment = payment.appointment
+    try:
+        html_content = render_template(
+            "email_appointment_refunds.html",
+            appointment=appointment,
+            patient_name=appointment.patientProfile.name,
+            doctor_name=appointment.doctor.user.name,
+            scheduled_date=appointment.scheduledDate.strftime("%d/%m/%Y"),
+            scheduled_time=appointment.scheduledTime.strftime("%H:%M"),
+            refund_amount=f"{int(payment.refundAmount):,}".replace(",", ".") + " đ",
+            refund_percent=payment.refundPercent,
+        )
+        msg = Message(
+            subject="[OU Clinic] Hoàn tiền thành công",
+            recipients=[appointment.patientProfile.owner.email],
+            html=html_content,
+        )
+        mail.send(msg)
+    except Exception as e:
+        app.logger.warning(f"Gửi mail hoàn tiền thất bại: {e}")
+
+
+def notify_appointment_cancelled(appointment, cancelled_by_role):
+    who = "Bệnh nhân" if cancelled_by_role == "PATIENT" else "Bác sĩ"
+    dao.create_notification(
+        user=appointment.patientProfile.owner,
+        title="Cuộc hẹn đã bị hủy",
+        body=(f"Cuộc hẹn với {appointment.doctor.user.name} lúc "
+              f"{appointment.scheduledTime.strftime('%H:%M')} ngày "
+              f"{appointment.scheduledDate.strftime('%d/%m/%Y')} đã được hủy "
+              f"bởi {who.lower()}."),
+        ntype=NotificationTypeEnum.APPOINTMENT,
+    )
+    if appointment.doctor.user:
+        dao.create_notification(
+            user=appointment.doctor.user,
+            title="Cuộc hẹn đã bị hủy",
+            body=(f"Cuộc hẹn với bệnh nhân {appointment.patientProfile.name} lúc "
+                  f"{appointment.scheduledTime.strftime('%H:%M')} ngày "
+                  f"{appointment.scheduledDate.strftime('%d/%m/%Y')} đã được hủy "
+                  f"bởi {who.lower()}."),
+            ntype=NotificationTypeEnum.APPOINTMENT,
+        )
+
+
+def notify_missing_bank_info(appointment):
+    from bookingonline.models.models import User, UserRoleEnum
+    admins = User.query.filter_by(role=UserRoleEnum.ADMIN, active=True).all()
+    for admin in admins:
+        dao.create_notification(
+            user=admin,
+            title="Không thể tự động hoàn tiền",
+            body=(f"Cuộc hẹn #{appointment.id} của bệnh nhân "
+                  f"{appointment.patientProfile.name} chưa có đủ thông tin "
+                  f"ngân hàng để hoàn tiền tự động."),
+            ntype=NotificationTypeEnum.PAYMENT,
+        )
+
+
+def notify_payout_failed(appointment, reason):
+    from bookingonline.models.models import User, UserRoleEnum
+    admins = User.query.filter_by(role=UserRoleEnum.ADMIN, active=True).all()
+    for admin in admins:
+        dao.create_notification(
+            user=admin,
+            title="Hoàn tiền tự động thất bại",
+            body=f"Cuộc hẹn #{appointment.id}: {reason}",
+            ntype=NotificationTypeEnum.PAYMENT,
+        )
+
+
+def build_payout_signature(body: dict) -> str:
+    sorted_items = sorted(body.items())
+    data = "&".join(f"{key}={quote(str(value), safe='')}" for key, value in sorted_items)
+    return hmac.new(
+        PAYOS_PAYOUT_CHECKSUM_KEY.encode("utf-8"),
+        data.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def create_payos_payout(payment):
+    appointment = payment.appointment
+    patient_user = appointment.patientProfile.owner
+    if not patient_user.bank_bin or not patient_user.bank_account_number:
+        notify_missing_bank_info(appointment)
+        return None
+    reference_id = f"REFUND-APPT{appointment.id}-{payment.id}"
+    body = {
+        "referenceId": reference_id,
+        "amount": int(payment.refundAmount or payment.amount),
+        "description": f"Hoan tien lich kham {appointment.id}"[:25],
+        "toBin": patient_user.bank_bin,
+        "toAccountNumber": patient_user.bank_account_number,
+    }
+    headers = {
+        "x-client-id": PAYOS_PAYOUT_CLIENT_ID,
+        "x-api-key": PAYOS_PAYOUT_API_KEY,
+        "x-idempotency-key": reference_id,
+        "x-signature": build_payout_signature(body),
+        "Content-Type": "application/json",
+    }
+    try:
+        res = requests.post(f"{PAYOS_API_BASE}/v1/payouts", json=body, headers=headers, timeout=15)
+        result = res.json()
+    except Exception as e:
+        notify_payout_failed(appointment, f"Lỗi kết nối tới PayOS: {e}")
+        return None
+
+    if result.get("code") != "00":
+        notify_payout_failed(appointment, result.get("desc", "Không rõ lỗi"))
+        return None
+    payout_id = result["data"]["id"]
+    dao.save_payout_id(payment, payout_id)
+    return payout_id
+
+
+def check_and_confirm_payout(payment):
+    if not payment.payoutId:
+        return
+    headers = {"x-client-id": PAYOS_PAYOUT_CLIENT_ID, "x-api-key": PAYOS_PAYOUT_API_KEY}
+    try:
+        res = requests.get(f"{PAYOS_API_BASE}/v1/payouts/{payment.payoutId}", headers=headers, timeout=15)
+        result = res.json()
+        print(result)
+    except Exception:
+        return
+    if result.get("code") != "00":
+        return
+    approval_state = result["data"]["approvalState"]
+    if approval_state == "COMPLETED":
+        dao.confirm_payment_refunded(payment)
+        send_refund_completed_email(payment)
+    elif approval_state in ("FAILED", "REJECTED"):
+        notify_payout_failed(payment.appointment, "Lệnh chi hoàn tiền bị PayOS từ chối hoặc thất bại.")
