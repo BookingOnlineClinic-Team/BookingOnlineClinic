@@ -114,7 +114,7 @@
           {% else %}
             <span class="badge badge-warning">{{ a.status.value }}</span>
           {% endif %}
-          <a href="{{ url_for('appointment_success', appointment_id=a.id) }}" class="btn btn-outline btn-sm">Xem phiếu hẹn</a>
+          <a href="{{ url_for('appointment_detail', appointment_id=a.id) }}" class="btn btn-outline btn-sm">Xem chi tiết</a>
         </div>
       </div>
       {% endfor %}
