@@ -1033,6 +1033,44 @@ def chatbot_manual_specialization():
         "doctors": doctors_payload,
     })
 
+@app.route("/appointment/detail/<int:appointment_id>")
+@login_required
+def appointment_detail(appointment_id):
+    appointment = dao.get_appointment_by_id(appointment_id)
+    if not appointment:
+        flash("Không tìm thấy lịch hẹn.", "error")
+        return redirect(url_for("select_profile"))
+    return render_template(
+        "appointment_detail.html",
+        active_page="appointments",
+        appointment=appointment,
+    )
+
+
+@app.route("/doctor/appointments")
+@login_required
+def doctor_appointments():
+    if current_user.role != UserRoleEnum.DOCTOR:
+        flash("Chỉ tài khoản bác sĩ mới xem được trang này.", "error")
+        return redirect(url_for("index"))
+
+    doctor = dao.get_doctor_profile_by_user(current_user.id)
+    if not doctor:
+        flash("Không tìm thấy hồ sơ bác sĩ của bạn.", "error")
+        return redirect(url_for("index"))
+
+    appointments = (
+        Appointment.query
+        .filter(Appointment.doctorId == doctor.id)
+        .order_by(Appointment.scheduledDate.desc(), Appointment.scheduledTime.desc())
+        .all()
+    )
+    return render_template(
+        "appointment_list.html",
+        active_page="appointments",
+        appointments=appointments,
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)
 
