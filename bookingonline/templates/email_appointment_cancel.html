@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuộc hẹn đã bị hủy</title>
+</head>
+
+<body style="
+    margin:0;
+    padding:0;
+    background-color:#F6FBFE;
+    font-family:Arial, Helvetica, sans-serif;
+">
+
+<div style="
+    width:100%;
+    background-color:#F6FBFE;
+    padding:32px 0;
+">
+
+    <div style="
+        width:560px;
+        max-width:calc(100% - 32px);
+        margin:0 auto;
+        background-color:#FFFFFF;
+        overflow:hidden;
+    ">
+
+        <!-- Header -->
+        <div style="
+            background-color:#0077B6;
+            padding:28px 32px;
+        ">
+            <div style="
+                color:#FFFFFF;
+                font-size:20px;
+                font-weight:bold;
+                line-height:28px;
+            ">
+                Phòng Khám Đa Khoa OU
+            </div>
+
+            <div style="
+                color:#CAF0F8;
+                font-size:13px;
+                line-height:20px;
+                padding-top:4px;
+            ">
+                Thông báo hủy cuộc hẹn
+            </div>
+        </div>
+
+        <!-- Cancellation notice -->
+        <div style="padding:28px 32px 0;">
+            <div style="
+                background-color:#FEF2F2;
+                border:1px solid #FECACA;
+                padding:16px 20px;
+            ">
+                <div style="
+                    color:#DC2626;
+                    font-size:14px;
+                    font-weight:bold;
+                    line-height:20px;
+                ">
+                    Cuộc hẹn #AK-{{ appointment.id }} đã bị hủy
+                    {% if cancelled_by_role == 'DOCTOR' %}
+                        bởi bác sĩ
+                    {% else %}
+                        bởi bệnh nhân
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:24px 32px;">
+
+            {% if recipient_role == 'PATIENT' %}
+
+                {% if cancelled_by_role == 'DOCTOR' %}
+
+                <p style="
+                    font-size:15px;
+                    color:#1E293B;
+                    line-height:24px;
+                    margin:0 0 20px;
+                ">
+                    Xin chào <strong>{{ patient_name }}</strong>,<br>
+                    Rất tiếc, bác sĩ <strong>{{ doctor_name }}</strong>
+                    đã phải hủy cuộc hẹn của bạn.
+                    {% if refund_percent is not none %}
+                    Bạn sẽ được hoàn lại
+                    <strong>{{ refund_percent }}%</strong>
+                    phí khám đã thanh toán.
+                    {% endif %}
+                </p>
+
+                {% else %}
+
+                <p style="
+                    font-size:15px;
+                    color:#1E293B;
+                    line-height:24px;
+                    margin:0 0 20px;
+                ">
+                    Xin chào <strong>{{ patient_name }}</strong>,<br>
+                    Chúng tôi xác nhận bạn đã hủy cuộc hẹn với bác sĩ
+                    <strong>{{ doctor_name }}</strong>.
+                    {% if refund_percent is not none %}
+                    Theo quy định hủy lịch của phòng khám, bạn sẽ được hoàn lại
+                    <strong>{{ refund_percent }}%</strong>
+                    phí khám ({{ refund_amount }}).
+                    {% endif %}
+                </p>
+
+                {% endif %}
+
+            {% else %}
+
+            <p style="
+                font-size:15px;
+                color:#1E293B;
+                line-height:24px;
+                margin:0 0 20px;
+            ">
+                Xin chào <strong>{{ doctor_name }}</strong>,<br>
+
+                {% if cancelled_by_role == 'DOCTOR' %}
+
+                Bạn đã hủy cuộc hẹn với bệnh nhân
+                <strong>{{ patient_name }}</strong>.
+                Hệ thống đã ghi nhận và thông báo cho bệnh nhân.
+
+                {% else %}
+
+                Bệnh nhân <strong>{{ patient_name }}</strong>
+                đã hủy cuộc hẹn với bạn.
+
+                {% endif %}
+            </p>
+
+            {% endif %}
+
+            <!-- Appointment information -->
+            <div style="
+                background-color:#F6FBFE;
+                border:1px solid #D7EAF3;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:16px 20px;
+                    font-size:14px;
+                    border-bottom:1px dashed #D7EAF3;
+                ">
+                    <span style="color:#64748B;">Mã phiếu hẹn</span>
+                    <strong style="color:#03045E;">
+                        #AK-{{ appointment.id }}
+                    </strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:14px 20px;
+                    font-size:14px;
+                    border-bottom:1px dashed #D7EAF3;
+                ">
+                    <span style="color:#64748B;">Bác sĩ</span>
+                    <strong style="color:#1E293B;">
+                        {{ doctor_name }}
+                    </strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:14px 20px;
+                    font-size:14px;
+                    border-bottom:1px dashed #D7EAF3;
+                ">
+                    <span style="color:#64748B;">Bệnh nhân</span>
+                    <strong style="color:#1E293B;">
+                        {{ patient_name }}
+                    </strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:14px 20px;
+                    font-size:14px;
+                    border-bottom:1px dashed #D7EAF3;
+                ">
+                    <span style="color:#64748B;">Chuyên khoa</span>
+                    <strong style="color:#1E293B;">
+                        {{ specialization_name }}
+                    </strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:14px 20px;
+                    font-size:14px;
+                    {% if cancel_reason %}
+                    border-bottom:1px dashed #D7EAF3;
+                    {% endif %}
+                ">
+                    <span style="color:#64748B;">
+                        Ngày giờ khám (đã hủy)
+                    </span>
+
+                    <strong style="color:#DC2626;">
+                        {{ scheduled_time }}, {{ scheduled_date }}
+                    </strong>
+                </div>
+
+                {% if cancel_reason %}
+
+                <div style="
+                    padding:14px 20px;
+                    font-size:13px;
+                ">
+                    <div style="color:#64748B;">
+                        Lý do hủy:
+                    </div>
+
+                    <div style="
+                        margin-top:4px;
+                        color:#1E293B;
+                        font-weight:500;
+                    ">
+                        {{ cancel_reason }}
+                    </div>
+                </div>
+
+                {% endif %}
+
+            </div>
+
+            {% if recipient_role == 'PATIENT' and refund_percent is not none %}
+
+            <p style="
+                font-size:13px;
+                color:#64748B;
+                line-height:21px;
+                margin:20px 0 0;
+            ">
+                Khoản tiền hoàn lại sẽ được chuyển vào tài khoản ngân hàng
+                bạn đã đăng ký trong vòng vài phút tới vài giờ làm việc.
+                Chúng tôi sẽ gửi email xác nhận riêng khi hoàn tất.
+            </p>
+
+            {% endif %}
+
+            <p style="
+                font-size:13px;
+                color:#64748B;
+                line-height:21px;
+                margin:20px 0 0;
+            ">
+                Nếu có thắc mắc, vui lòng liên hệ Hotline
+                <strong>1900 6868</strong>.
+            </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="
+            background-color:#F6FBFE;
+            padding:20px 32px;
+            border-top:1px solid #D7EAF3;
+        ">
+            <p style="
+                font-size:12px;
+                color:#94A3B8;
+                margin:0;
+                line-height:19px;
+            ">
+                Phòng Khám Đa Khoa OU &middot;
+                Đây là email tự động,
+                vui lòng không trả lời trực tiếp email này.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

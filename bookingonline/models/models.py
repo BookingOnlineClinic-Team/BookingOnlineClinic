@@ -60,6 +60,9 @@ class User(Base, UserMixin):
     chatbotSessions = relationship("ChatbotSession", backref="user")
     reviewsWritten = relationship("Review", backref="author")
     cancelledAppointments = relationship("Appointment", backref="cancelledByUser")
+    bank_bin = Column(String(20), default='970422', nullable=False)
+    bank_account_number = Column(String(30), default='0325391105', nullable=False)
+    bank_account_name = Column(String(100), default='PHAM HOANG PHU QUY', nullable=False)
 
 
 class Specialization(Base):
@@ -147,6 +150,9 @@ class Payment(Base):
     qrCode = Column(String(255))
     paidAt = Column(DateTime)
     appointmentId = Column(Integer, ForeignKey(Appointment.id), unique=True, nullable=False)
+    payoutId = Column(String(100))
+    refundAmount = Column(Float)
+    refundPercent = Column(Integer)
 
 class Review(Base):
     rating = Column(Integer, nullable=False)

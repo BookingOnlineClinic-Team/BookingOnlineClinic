@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime, timedelta, date, time as dtime
 from bookingonline import db
 from bookingonline.models.models import *
-
+import math
 
 def hash_password(password: str) -> str:
     return hashlib.md5(password.encode("utf-8")).hexdigest()
@@ -19,12 +19,19 @@ def verify_login(username, password, role=None):
         return user
     return None
 
-def create_patient_user(name, username, password, email, phone=None, gender=None):
+
+def create_patient_user(name, username, password, email, phone=None, gender=None,bank_bin=None, bank_account_number=None, bank_account_name=None):
     user = User(
         name=name, username=username, password=password,
         email=email, phone=phone, gender=gender,
         role=UserRoleEnum.PATIENT,
     )
+    if bank_bin is not None:
+        user.bank_bin = bank_bin
+    if bank_account_number is not None:
+        user.bank_account_number = bank_account_number
+    if bank_account_name is not None:
+        user.bank_account_name = bank_account_name
     db.session.add(user)
     db.session.commit()
     return user
@@ -1015,6 +1022,72 @@ def update_appointment_status(appointment, new_status, cancel_reason=None, cance
             appointment.cancelledByUserId = cancelled_by_user.id
     db.session.commit()
     return appointment
+
+
+def get_remaining_minutes(scheduled_date, scheduled_time, now=None):
+    now = now or datetime.now()
+    scheduled_dt = datetime.combine(scheduled_date, scheduled_time)
+    return (scheduled_dt - now).total_seconds() / 60
+
+
+def can_cancel_appointment(appointment, now=None):
+    if appointment.status != AppointmentStatusEnum.CONFIRMED:
+        return False, "Chỉ có thể hủy cuộc hẹn đang ở trạng thái đã xác nhận."
+    remaining = get_remaining_minutes(appointment.scheduledDate, appointment.scheduledTime, now)
+    if remaining <= 0:
+        return False, "Đã quá giờ hẹn, không thể hủy cuộc hẹn này nữa."
+    return True, None
+
+
+def calculate_patient_refund_percent(config, appointment, now=None):
+    remaining = get_remaining_minutes(appointment.scheduledDate, appointment.scheduledTime, now)
+    base = config.refundPercentagePatient or 100
+    cutoff = config.minimumCancellationTime
+    if remaining >= cutoff:
+        return base
+    deficit = cutoff - remaining
+    steps = math.ceil(deficit / config.cancellationPenaltyStepMinutes)
+    penalty = steps * config.cancellationPenaltyPercentPerStep
+    return max(0, base - penalty)
+
+
+def cancel_appointment(appointment, cancelled_by_user, reason, refund_percent):
+    appointment.status = AppointmentStatusEnum.CANCELLED
+    appointment.cancelReason = reason
+    appointment.cancelledAt = datetime.now()
+    appointment.cancelledByUserId = cancelled_by_user.id
+    payment = appointment.payment
+    if payment and payment.status == PaymentStatusEnum.PENDING:
+        payment.status = PaymentStatusEnum.FAILED
+    elif payment and payment.status == PaymentStatusEnum.PAID:
+        payment.status = PaymentStatusEnum.REFUND_PENDING
+        payment.refundPercent = refund_percent
+        payment.refundAmount = round(payment.amount * refund_percent / 100, 2)
+    db.session.commit()
+    return payment if (payment and payment.status == PaymentStatusEnum.REFUND_PENDING) else None
+
+
+def save_payout_id(payment, payout_id):
+    payment.payoutId = payout_id
+    db.session.commit()
+    return payment
+
+
+def get_pending_refund_payments():
+    return (
+        Payment.query
+        .filter(
+            Payment.status == PaymentStatusEnum.REFUND_PENDING,
+            Payment.payoutId.isnot(None),
+        )
+        .all()
+    )
+
+
+def confirm_payment_refunded(payment):
+    payment.status = PaymentStatusEnum.REFUND
+    db.session.commit()
+    return payment
 
 def toggle_user_active(user):
     # Khóa / Mở khóa tài khoản (dùng chung được cho patient, doctor...).

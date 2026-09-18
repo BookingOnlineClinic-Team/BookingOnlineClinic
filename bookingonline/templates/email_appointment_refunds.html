@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoàn tiền thành công</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F6FBFE; font-family:Arial, Helvetica, sans-serif;">
+
+<div style="width:100%; background-color:#F6FBFE; padding:32px 0;">
+  <div style="width:560px; max-width:calc(100% - 32px); margin:0 auto; background-color:#FFFFFF; overflow:hidden;">
+
+    <div style="background-color:#0077B6; padding:28px 32px;">
+      <div style="color:#FFFFFF; font-size:20px; font-weight:bold; line-height:28px;">
+        Phòng Khám Đa Khoa OU
+      </div>
+      <div style="color:#CAF0F8; font-size:13px; line-height:20px; padding-top:4px;">
+        Xác nhận hoàn tiền
+      </div>
+    </div>
+
+    <div style="padding:28px 32px 0;">
+      <div style="background-color:#F0FDF4; border:1px solid #BBF7D0; padding:16px 20px;">
+        <div style="color:#16A34A; font-size:14px; font-weight:bold; line-height:20px;">
+          Đã hoàn tiền thành công cho cuộc hẹn #AK-{{ appointment.id }}
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:24px 32px;">
+      <p style="font-size:15px; color:#1E293B; line-height:24px; margin:0 0 20px;">
+        Xin chào <strong>{{ patient_name }}</strong>,<br>
+        Khoản tiền hoàn cho cuộc hẹn đã hủy với bác sĩ
+        <strong>{{ doctor_name }}</strong>
+        đã được chuyển thành công vào tài khoản ngân hàng bạn đã đăng ký.
+      </p>
+
+      <div style="background-color:#F6FBFE; border:1px solid #D7EAF3;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; font-size:14px; border-bottom:1px dashed #D7EAF3;">
+          <span style="color:#64748B;">Mã phiếu hẹn</span>
+          <strong style="color:#03045E;">#AK-{{ appointment.id }}</strong>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; font-size:14px; border-bottom:1px dashed #D7EAF3;">
+          <span style="color:#64748B;">Ngày giờ khám (đã hủy)</span>
+          <strong style="color:#1E293B;">{{ scheduled_time }}, {{ scheduled_date }}</strong>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; font-size:14px; border-bottom:1px dashed #D7EAF3;">
+          <span style="color:#64748B;">Tỉ lệ hoàn tiền</span>
+          <strong style="color:#1E293B;">{{ refund_percent }}%</strong>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; font-size:14px;">
+          <span style="color:#64748B;">Số tiền đã hoàn</span>
+          <strong style="color:#16A34A; font-size:16px;">{{ refund_amount }}</strong>
+        </div>
+
+      </div>
+
+      <p style="font-size:13px; color:#64748B; line-height:21px; margin:24px 0 0;">
+        Nếu chưa thấy tiền về sau vài giờ làm việc, vui lòng liên hệ Hotline
+        <strong>1900 6868</strong> để được hỗ trợ.
+      </p>
+    </div>
+
+    <div style="background-color:#F6FBFE; padding:20px 32px; border-top:1px solid #D7EAF3;">
+      <p style="font-size:12px; color:#94A3B8; margin:0; line-height:19px;">
+        Phòng Khám Đa Khoa OU &middot;
+        Đây là email tự động, vui lòng không trả lời trực tiếp email này.
+      </p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

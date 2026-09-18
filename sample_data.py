@@ -108,6 +108,9 @@ def seed():
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.MALE,
         phone="0918111222",
+        bank_bin="970422",
+        bank_account_number="0325391105",
+        bank_account_name="PHAM HOANG PHU QUY",
     )
     patient_user_2 = User(
         name="Bùi Thị Ngọc Anh",
@@ -117,6 +120,9 @@ def seed():
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.FEMALE,
         phone="0918222333",
+        bank_bin="970422",
+        bank_account_number="0325391105",
+        bank_account_name="PHAM HOANG PHU QUY",
     )
     patient_user_3 = User(
         name="Dương Quốc Việt",
@@ -126,6 +132,9 @@ def seed():
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.MALE,
         phone="0918333444",
+        bank_bin="970422",
+        bank_account_number="0325391105",
+        bank_account_name="PHAM HOANG PHU QUY",
     )
     patient_user_4 = User(
         name="Lâm Thị Thu Trang",
@@ -135,6 +144,9 @@ def seed():
         role=UserRoleEnum.PATIENT,
         gender=GenderEnum.FEMALE,
         phone="0918444555",
+        bank_bin="970422",
+        bank_account_number="0325391105",
+        bank_account_name="PHAM HOANG PHU QUY",
     )
 
     db.session.add_all([
@@ -432,6 +444,10 @@ def seed():
         checkoutUrl="https://payos.vn/checkout/TXN-1004",
         qrCode="QR-CODE-TXN-1004",
         paidAt=datetime.now() - timedelta(days=1),
+        # Bệnh nhân hủy sớm (đủ điều kiện hoàn 100%) -> đã hoàn tiền xong.
+        refundPercent=100,
+        refundAmount=doctor_2.fee,
+        payoutId="PAYOUT-DEMO-TXN1004",
     )
     appointments.append(appointment_4)
     payments.append(payment_4)
@@ -567,6 +583,12 @@ def seed():
         checkoutUrl="https://payos.vn/checkout/TXN-1010",
         qrCode="QR-CODE-TXN-1010",
         paidAt=datetime.now() - timedelta(days=1),
+        # Bác sĩ hủy -> luôn hoàn 100%. payoutId đã có sẵn (đã tạo lệnh chi
+        # PayOS) nhưng CHƯA được Celery xác nhận -> dùng để test ngay
+        # task check_pending_refunds() mà không cần thao tác hủy qua UI.
+        refundPercent=100,
+        refundAmount=doctor_4.fee,
+        payoutId="PAYOUT-DEMO-TXN1010",
     )
     appointments.append(appointment_10)
     payments.append(payment_10)

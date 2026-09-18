@@ -363,15 +363,6 @@ def appointment_schedule():
         if scheduled_dt - datetime.now() < timedelta(minutes=config.minimumBookingTime):
             flash("Đã quá giờ quy định đặt lịch, vui lòng đặt ngày khác", "warning")
             return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
-
-        active_count = dao.count_active_appointments_on_date(profile.id, scheduled_date)
-        if active_count >= config.maxAppointmentsPerDay:
-            flash(
-                f"Bạn đã đạt số lượng lịch hẹn tối đa ({config.maxAppointmentsPerDay}) "
-                f"trong ngày {scheduled_date.strftime('%d/%m/%Y')}, vui lòng chọn ngày khác.",
-                "warning",
-            )
-            return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
         #bichnhu-cauhinh
         appointment = dao.create_appointment(
             patient_profile=profile,
@@ -1108,12 +1099,9 @@ _ALLOWED_STATUS_TRANSITIONS = {
         AppointmentStatusEnum.COMPLETED,
         AppointmentStatusEnum.CANCELLED,
         AppointmentStatusEnum.NO_SHOW,
-    ],
-    AppointmentStatusEnum.COMPLETED: [
-        AppointmentStatusEnum.CANCELLED,
-        AppointmentStatusEnum.NO_SHOW,
-    ],
+    ]
 }
+
 
 @app.route("/appointment/<int:appointment_id>/status", methods=["POST"])
 @login_required
@@ -1129,12 +1117,14 @@ def update_appointment_status(appointment_id):
 
     doctor = dao.get_doctor_profile_by_user(current_user.id)
     if not doctor or appointment.doctorId != doctor.id:
+        flash("Bạn không có quyền cập nhật lịch hẹn này.", "error")
         return redirect(url_for("doctor_appointments"))
 
     new_status_raw = request.form.get("new_status", "")
     reason = request.form.get("reason", "").strip()
 
     if new_status_raw not in AppointmentStatusEnum.__members__:
+        flash("Trạng thái không hợp lệ.", "error")
         return redirect(url_for("doctor_appointments"))
     new_status = AppointmentStatusEnum[new_status_raw]
 
@@ -1153,6 +1143,55 @@ def update_appointment_status(appointment_id):
         cancelled_by_user=current_user if new_status == AppointmentStatusEnum.CANCELLED else None,
     )
     return redirect(url_for("doctor_appointments"))
+
+
+@app.route("/appointment/<int:appointment_id>/cancel", methods=["POST"])
+@login_required
+def cancel_appointment(appointment_id):
+    appointment = dao.get_appointment_by_id(appointment_id)
+    if not appointment:
+        flash("Không tìm thấy lịch hẹn.", "error")
+        return redirect(url_for("my_appointments"))
+    is_patient_owner = appointment.patientProfile.userId == current_user.id
+    doctor_profile = (
+        dao.get_doctor_profile_by_user(current_user.id)
+        if current_user.role == UserRoleEnum.DOCTOR else None
+    )
+    is_appointment_doctor = bool(doctor_profile and appointment.doctorId == doctor_profile.id)
+    if not is_patient_owner and not is_appointment_doctor:
+        flash("Bạn không có quyền hủy cuộc hẹn này.", "error")
+        return redirect(url_for("my_appointments"))
+    cancelled_by_role = "DOCTOR" if is_appointment_doctor else "PATIENT"
+    can_cancel, error_message = dao.can_cancel_appointment(appointment)
+    if not can_cancel:
+        flash(error_message, "error")
+        return redirect(
+            url_for("doctor_appointments") if cancelled_by_role == "DOCTOR" else url_for("my_appointments")
+        )
+    reason = request.form.get("reason", "").strip()
+    config = dao.get_system_config()
+    if cancelled_by_role == "DOCTOR":
+        refund_percent = config.refundPercentageDoctor or 100  # bác sĩ hủy -> luôn hoàn đủ theo cấu hình (mặc định 100%)
+    else:
+        refund_percent = dao.calculate_patient_refund_percent(config, appointment)
+
+    payment = dao.cancel_appointment(appointment, current_user, reason, refund_percent)
+    utils.notify_appointment_cancelled(appointment, cancelled_by_role)
+    utils.send_appointment_cancel_email(
+        appointment, cancelled_by_role,
+        refund_percent=refund_percent if payment else None,
+    )
+    if payment:
+        utils.create_payos_payout(payment)
+        flash(
+            f"Đã hủy cuộc hẹn. Khoản tiền {int(payment.refundAmount):,}đ ({refund_percent}%) đang được xử lý hoàn lại.".replace(
+                ",", "."),
+            "success",
+        )
+    else:
+        flash("Đã hủy cuộc hẹn.", "success")
+    return redirect(url_for("doctor_appointments") if cancelled_by_role == "DOCTOR" else url_for("my_appointments"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
