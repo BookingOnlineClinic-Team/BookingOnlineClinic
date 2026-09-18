@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from bookingonline import app, db, login_manager
 from bookingonline.models import dao
 import utils
-from bookingonline.models.models import ( User, GenderEnum, UserRoleEnum, PaymentStatusEnum, Appointment,)
+from bookingonline.models.models import *
 from bookingonline.services.gemini_service import classify_specialization, GeminiServiceError
 
 #bichnhu-admin-cauhinh
@@ -1070,6 +1070,89 @@ def doctor_appointments():
         active_page="appointments",
         appointments=appointments,
     )
+
+
+@app.route("/appointment/<int:appointment_id>/review", methods=["POST"])
+@login_required
+def submit_review(appointment_id):
+    appointment = dao.get_appointment_by_id(appointment_id)
+    if not appointment:
+        flash("Không tìm thấy lịch hẹn.", "error")
+        return redirect(url_for("my_appointments"))
+
+    if appointment.patientProfile.userId != current_user.id:
+        flash("Bạn không có quyền đánh giá lịch hẹn này.", "error")
+        return redirect(url_for("my_appointments"))
+
+    if appointment.status != AppointmentStatusEnum.COMPLETED:
+        flash("Chỉ có thể đánh giá sau khi cuộc hẹn đã hoàn thành khám.", "warning")
+        return redirect(url_for("my_appointments"))
+
+    if appointment.review:
+        flash("Lịch hẹn này đã được đánh giá trước đó.", "warning")
+        return redirect(url_for("my_appointments"))
+
+    rating = request.form.get("rating", type=int)
+    comment = request.form.get("comment", "").strip()
+    if not rating or rating < 1 or rating > 5:
+        flash("Vui lòng chọn số sao đánh giá (1-5 sao).", "error")
+        return redirect(url_for("my_appointments"))
+
+    dao.create_review(appointment=appointment, author=current_user, rating=rating, comment=comment)
+    flash("Cảm ơn bạn đã đánh giá cuộc hẹn!", "success")
+    return redirect(url_for("my_appointments"))
+
+
+_ALLOWED_STATUS_TRANSITIONS = {
+    AppointmentStatusEnum.CONFIRMED: [
+        AppointmentStatusEnum.COMPLETED,
+        AppointmentStatusEnum.CANCELLED,
+        AppointmentStatusEnum.NO_SHOW,
+    ],
+    AppointmentStatusEnum.COMPLETED: [
+        AppointmentStatusEnum.CANCELLED,
+        AppointmentStatusEnum.NO_SHOW,
+    ],
+}
+
+@app.route("/appointment/<int:appointment_id>/status", methods=["POST"])
+@login_required
+def update_appointment_status(appointment_id):
+    if current_user.role != UserRoleEnum.DOCTOR:
+        flash("Chỉ tài khoản bác sĩ mới có thể cập nhật trạng thái cuộc hẹn.", "error")
+        return redirect(url_for("index"))
+
+    appointment = dao.get_appointment_by_id(appointment_id)
+    if not appointment:
+        flash("Không tìm thấy lịch hẹn.", "error")
+        return redirect(url_for("doctor_appointments"))
+
+    doctor = dao.get_doctor_profile_by_user(current_user.id)
+    if not doctor or appointment.doctorId != doctor.id:
+        return redirect(url_for("doctor_appointments"))
+
+    new_status_raw = request.form.get("new_status", "")
+    reason = request.form.get("reason", "").strip()
+
+    if new_status_raw not in AppointmentStatusEnum.__members__:
+        return redirect(url_for("doctor_appointments"))
+    new_status = AppointmentStatusEnum[new_status_raw]
+
+    allowed = _ALLOWED_STATUS_TRANSITIONS.get(appointment.status, [])
+    if new_status not in allowed:
+        flash(
+            f"Không thể chuyển cuộc hẹn từ '{appointment.status.value}' sang '{new_status.value}'.",
+            "error",
+        )
+        return redirect(url_for("doctor_appointments"))
+
+    dao.update_appointment_status(
+        appointment,
+        new_status,
+        cancel_reason=reason if new_status == AppointmentStatusEnum.CANCELLED else None,
+        cancelled_by_user=current_user if new_status == AppointmentStatusEnum.CANCELLED else None,
+    )
+    return redirect(url_for("doctor_appointments"))
 
 if __name__ == "__main__":
     app.run(debug=True)
