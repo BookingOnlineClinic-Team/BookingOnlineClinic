@@ -9,7 +9,7 @@ from payos import PayOS
 from payos.types import CreatePaymentLinkRequest
 from bookingonline import app
 from bookingonline.models import dao
-from bookingonline.models.models import (NotificationTypeEnum, WorkSchedule, WorkScheduleSessionEnum, GenderEnum)
+from bookingonline.models.models import *
 from bookingonline import db
 import qrcode
 import hmac
@@ -22,12 +22,16 @@ PAYOS_API_BASE = os.environ.get("PAYOS_API_BASE", "https://api-merchant.payos.vn
 PAYOS_PAYOUT_CLIENT_ID = os.environ.get("PAYOS_PAYOUT_CLIENT_ID")
 PAYOS_PAYOUT_API_KEY = os.environ.get("PAYOS_PAYOUT_API_KEY")
 PAYOS_PAYOUT_CHECKSUM_KEY = os.environ.get("PAYOS_PAYOUT_CHECKSUM_KEY")
+PAYOS_CLIENT_ID = os.environ.get("PAYOS_CLIENT_ID")
+PAYOS_API_KEY = os.environ.get("PAYOS_API_KEY")
+PAYOS_CHECKSUM_KEY = os.environ.get("PAYOS_CHECKSUM_KEY")
 PHONE_REGEX = re.compile(r"^0\d{9}$")
+payos_client = PayOS(client_id=PAYOS_CLIENT_ID,api_key=PAYOS_API_KEY,checksum_key=PAYOS_CHECKSUM_KEY)
+
 
 
 def is_valid_phone(phone):
     return bool(phone) and bool(PHONE_REGEX.match(phone.strip()))
-
 
 def is_valid_birth_date(d):
     if d is None:
@@ -45,21 +49,17 @@ def validate_patient_profile_form(form):
     gender_raw = form.get("gender", "").strip()
     dob_raw = form.get("date_of_birth", "").strip()
     address = form.get("address", "").strip()
-
     errors = []
     if not name:
-        errors.append("Vui lòng nhập họ tên.")
-
+        errors.append("Vui lòng nhập họ tên")
     if not is_valid_phone(phone):
-        errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).")
-
+        errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)")
     gender = None
     if gender_raw:
         try:
             gender = GenderEnum[gender_raw]
         except KeyError:
-            errors.append("Giới tính không hợp lệ.")
-
+            errors.append("Giới tính không hợp lệ")
     date_of_birth = None
     if dob_raw:
         try:
@@ -69,8 +69,7 @@ def validate_patient_profile_form(form):
             errors.append("Ngày sinh không đúng định dạng.")
         else:
             if not is_valid_birth_date(date_of_birth):
-                errors.append("Ngày sinh không hợp lệ (ở tương lai hoặc quá xa so với hiện tại).")
-
+                errors.append("Ngày sinh không hợp lệ (ở tương lai hoặc quá xa so với hiện tại)")
     data = {
         "name": name,
         "phone": phone,
@@ -88,39 +87,35 @@ def validate_doctor_profile_form(form):
     description = form.get("description", "").strip()
     bio = form.get("bio", "").strip()
     avatar_url = form.get("avatarUrl", "").strip()
-
     errors = []
-
     if not license_number:
-        errors.append("Vui lòng nhập số chứng chỉ hành nghề.")
+        errors.append("Vui lòng nhập số chứng chỉ hành nghề")
     elif len(license_number) > 50:
-        errors.append("Số chứng chỉ hành nghề tối đa 50 ký tự.")
-
+        errors.append("Số chứng chỉ hành nghề tối đa 50 ký tự")
     experience_yrs = None
     if not experience_yrs_raw:
-        errors.append("Vui lòng nhập số năm kinh nghiệm.")
+        errors.append("Vui lòng nhập số năm kinh nghiệm")
     else:
         try:
             experience_yrs = int(experience_yrs_raw)
             if experience_yrs < 0 or experience_yrs > 70:
-                errors.append("Số năm kinh nghiệm không hợp lệ (0-70).")
+                errors.append("Số năm kinh nghiệm không hợp lệ (0-70)")
         except ValueError:
-            errors.append("Số năm kinh nghiệm phải là số nguyên.")
+            errors.append("Số năm kinh nghiệm phải là số nguyên")
 
     fee = None
     if not fee_raw:
-        errors.append("Vui lòng nhập chi phí khám.")
+        errors.append("Vui lòng nhập chi phí khám")
     else:
         try:
             fee = float(fee_raw)
             if fee <= 0:
-                errors.append("Chi phí khám phải lớn hơn 0.")
+                errors.append("Chi phí khám phải lớn hơn 0")
         except ValueError:
-            errors.append("Chi phí khám phải là số.")
+            errors.append("Chi phí khám phải là số")
 
     if avatar_url and not (avatar_url.startswith("http://") or avatar_url.startswith("https://")):
-        errors.append("Avatar URL phải bắt đầu bằng http:// hoặc https://.")
-
+        errors.append("Avatar URL phải bắt đầu bằng http:// hoặc https://")
     data = {
         "license_number": license_number,
         "experience_yrs": experience_yrs,
@@ -130,10 +125,6 @@ def validate_doctor_profile_form(form):
         "avatar_url": avatar_url or None,
     }
     return data, errors
-
-
-payos_client = PayOS(client_id=os.environ.get("PAYOS_CLIENT_ID"),api_key=os.environ.get("PAYOS_API_KEY"),checksum_key=os.environ.get("PAYOS_CHECKSUM_KEY"))
-
 
 def create_payos_payment_link(payment):
     appointment = payment.appointment
@@ -165,7 +156,6 @@ def verify_payos_webhook(raw_body):
     except Exception as e:
         app.logger.warning(f"Webhook PayOS không hợp lệ: {e}")
         return None
-
 
 def generate_qr_image_data_uri(qr_content: str):
     if not qr_content:
@@ -245,7 +235,6 @@ def _generate_slots(start_time: dtime, end_time: dtime, slot_minutes=30):
         cur += timedelta(minutes=slot_minutes)
     return slots
 
-
 def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date, slot_minutes=30):
     config = dao.get_system_config()
     working_days = set(config.workingDaysList())
@@ -255,9 +244,7 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
     }
 
     morning_slots = _generate_slots(config.morningStartTime, config.morningEndTime, slot_minutes)
-    print(morning_slots)
     afternoon_slots = _generate_slots(config.afternoonStartTime, config.afternoonEndTime, slot_minutes)
-    print(afternoon_slots)
     created = 0
     cur_date = start_date
     while cur_date <= end_date:
@@ -278,18 +265,12 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
 # bích như - admin - cau hinh tham so
 VALID_WORKING_DAYS = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
 def validate_system_config_form(form):
-    #Validate form cấu hình hệ thống (trang Admin).
-    #Trả về (data, errors) giống các hàm validate khác trong file này.
     errors = []
     data = {}
-
-    # 1. Ngày làm việc chuẩn
     working_days = [d for d in form.getlist("workingDays") if d in VALID_WORKING_DAYS]
     if not working_days:
         errors.append("Vui lòng chọn ít nhất 1 ngày làm việc.")
     data["workingDays"] = ",".join(working_days) if working_days else None
-
-    # 2. Giờ làm việc (ca sáng / ca chiều)
     def parse_time(field_name, label):
         raw = form.get(field_name, "").strip()
         if not raw:
@@ -300,12 +281,10 @@ def validate_system_config_form(form):
         except ValueError:
             errors.append(f"{label} không đúng định dạng giờ.")
             return None
-
     morning_start = parse_time("morningStartTime", "giờ bắt đầu ca sáng")
     morning_end = parse_time("morningEndTime", "giờ kết thúc ca sáng")
     afternoon_start = parse_time("afternoonStartTime", "giờ bắt đầu ca chiều")
     afternoon_end = parse_time("afternoonEndTime", "giờ kết thúc ca chiều")
-
     if morning_start and morning_end and morning_end <= morning_start:
         errors.append("Giờ kết thúc ca sáng phải sau giờ bắt đầu ca sáng.")
     if afternoon_start and afternoon_end and afternoon_end <= afternoon_start:
@@ -319,8 +298,6 @@ def validate_system_config_form(form):
         "afternoonStartTime": afternoon_start,
         "afternoonEndTime": afternoon_end,
     })
-
-    # 3. Các trường số nguyên
     def parse_int(field_name, label, min_v=0, max_v=None):
         raw = form.get(field_name, "").strip()
         if not raw:
@@ -354,7 +331,6 @@ def validate_system_config_form(form):
 VALID_SPECIALIZATION_ICONS = ["stethoscope", "heart-pulse", "baby", "sparkles", "activity"]
 
 def validate_specialization_form(form, exclude_id=None):
-    #Validate form thêm/sửa chuyên khoa (trang Admin).
     errors = []
     data = {}
 
@@ -377,11 +353,8 @@ def validate_specialization_form(form, exclude_id=None):
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 def validate_doctor_account_form(form, is_edit=False):
-    # is_edit=False -> validate cả username/password (khi ADMIN TẠO MỚI bác sĩ)
-    # is_edit=True  -> bỏ qua username/password (khi ADMIN SỬA hồ sơ bác sĩ đã có)
     errors = []
     data = {}
-
     name = form.get("name", "").strip()
     if not name:
         errors.append("Vui lòng nhập họ tên bác sĩ.")
@@ -405,8 +378,6 @@ def validate_doctor_account_form(form, is_edit=False):
         except KeyError:
             errors.append("Giới tính không hợp lệ.")
     data["gender"] = gender
-
-    # Chuyên khoa
     spec_raw = form.get("specializationId", "").strip()
     specialization_id = None
     if not spec_raw:
@@ -464,8 +435,6 @@ def validate_doctor_account_form(form, is_edit=False):
     if avatar_url and not (avatar_url.startswith("http://") or avatar_url.startswith("https://")):
         errors.append("Avatar URL phải bắt đầu bằng http:// hoặc https://.")
     data["avatar_url"] = avatar_url or None
-
-    # Chỉ validate username/password khi TẠO MỚI, không đụng vào khi SỬA
     if not is_edit:
         username = form.get("username", "").strip()
         password = form.get("password", "")
@@ -489,12 +458,10 @@ def validate_doctor_account_form(form, is_edit=False):
 
     return data, errors
 
-
 def send_appointment_cancel_email(appointment, cancelled_by_role, refund_percent=None):
     if not app.config.get("MAIL_USERNAME"):
         app.logger.warning("MAIL_USERNAME chưa cấu hình, bỏ qua gửi mail hủy lịch.")
         return
-
     common_ctx = dict(
         appointment=appointment,
         doctor_name=appointment.doctor.user.name,
@@ -584,7 +551,6 @@ def notify_appointment_cancelled(appointment, cancelled_by_role):
 
 
 def notify_missing_bank_info(appointment):
-    from bookingonline.models.models import User, UserRoleEnum
     admins = User.query.filter_by(role=UserRoleEnum.ADMIN, active=True).all()
     for admin in admins:
         dao.create_notification(
@@ -607,7 +573,6 @@ def notify_payout_failed(appointment, reason):
             body=f"Cuộc hẹn #{appointment.id}: {reason}",
             ntype=NotificationTypeEnum.PAYMENT,
         )
-
 
 def build_payout_signature(body: dict) -> str:
     sorted_items = sorted(body.items())
@@ -653,7 +618,6 @@ def create_payos_payout(payment):
     payout_id = result["data"]["id"]
     dao.save_payout_id(payment, payout_id)
     return payout_id
-
 
 def check_and_confirm_payout(payment):
     if not payment.payoutId:

@@ -19,7 +19,7 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:root@host.docker.internal/clinicdb?charset=utf8
   celery_worker:
     build: .
     command: celery -A bookingonline.celery_app.celery worker -l info
@@ -33,6 +33,7 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:root@host.docker.internal/clinicdb?charset=utf8
 
   celery_beat:
     build: .
@@ -47,3 +48,4 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:root@host.docker.internal/clinicdb?charset=utf8

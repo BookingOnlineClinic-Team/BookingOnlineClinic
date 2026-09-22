@@ -20,7 +20,7 @@ def make_celery(flask_app):
 
     celery.Task = ContextTask
     celery.conf.beat_schedule = {
-        "check-pending-refunds-every-5-minutes": {
+        "check-pending-refunds-every-1-minutes": {
             "task": "bookingonline.tasks.check_pending_refunds",
             "schedule": 60.0
         },

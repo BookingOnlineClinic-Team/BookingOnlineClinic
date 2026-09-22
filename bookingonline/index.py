@@ -6,7 +6,6 @@ from bookingonline.models import dao
 import utils
 from bookingonline.models.models import *
 from bookingonline.services.gemini_service import classify_specialization, GeminiServiceError
-
 #bichnhu-admin-cauhinh
 from bookingonline.services.gemini_service import classify_specialization, GeminiServiceError
 import bookingonline.admin  # (đăng ký các route /admin/... vào app)
@@ -147,7 +146,7 @@ def create_profile():
             date_of_birth=date_of_birth,
             address=address,
         )
-        flash("Tạo hồ sơ khám thành công.", "success")
+        flash("Tạo hồ sơ khám thành công", "success")
         return redirect(url_for("select_specialization", profile_id=profile.id))
     return redirect(url_for("select_profile", open_create_modal=1))
 
@@ -155,22 +154,18 @@ def create_profile():
 @login_required
 def patient_profile_detail(profile_id):
     profile = dao.get_patient_profile_by_owner(profile_id, current_user.id)
-
     if request.method == "PATCH":
         if not profile:
-            flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
+            flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa", "error")
             return jsonify(redirect=url_for("select_profile")), 404
-
         data, errors = utils.validate_patient_profile_form(request.form)
         if errors:
             for e in errors:
                 flash(e, "error")
             return jsonify(redirect=url_for("patient_profile_detail", profile_id=profile_id)), 400
-
         dao.update_patient_profile(profile, **data)
         flash("Cập nhật hồ sơ khám thành công!", "success")
         return jsonify(redirect=url_for("select_profile"))
-
     if not profile:
         flash("Không tìm thấy hồ sơ khám hoặc bạn không có quyền chỉnh sửa.", "error")
         return redirect(url_for("select_profile"))
@@ -180,25 +175,21 @@ def patient_profile_detail(profile_id):
 @login_required
 def doctor_profile_detail():
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash("Chỉ tài khoản bác sĩ mới có hồ sơ bác sĩ.", "error")
+        flash("Chỉ tài khoản bác sĩ mới có hồ sơ bác sĩ", "error")
         return redirect(url_for("index"))
-
     profile = dao.get_doctor_profile_by_user(current_user.id)
     if not profile:
         flash("Không tìm thấy hồ sơ bác sĩ của bạn.", "error")
         return redirect(url_for("index"))
-
     if request.method == "PATCH":
         data, errors = utils.validate_doctor_profile_form(request.form)
         if errors:
             for e in errors:
                 flash(e, "error")
             return jsonify(redirect=url_for("doctor_profile_detail")), 400
-
         dao.update_doctor_profile(profile, **data)
-        flash("Cập nhật hồ sơ bác sĩ thành công!", "success")
+        flash("Cập nhật hồ sơ bác sĩ thành công", "success")
         return jsonify(redirect=url_for("doctor_profile_detail"))
-
     return render_template("doctor_profile_edit.html", active_page="doctor-profile", profile=profile)
 
 @app.route("/specializations")
@@ -233,7 +224,7 @@ def select_doctor():
     profile = dao.get_patient_profile_by_id(profile_id)
     specialization = dao.get_specialization_by_id(specialization_id)
     if not profile or not specialization:
-        flash("Thông tin không hợp lệ, vui lòng chọn lại.", "error")
+        flash("Thông tin không hợp lệ, vui lòng chọn lại", "error")
         return redirect(url_for("select_profile"))
 
     doctors = dao.get_doctors_by_specialization(specialization_id)
@@ -259,8 +250,6 @@ def select_doctor():
 
 _VN_WEEKDAYS = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
 def _build_date_pills(slots):
-    from bookingonline.models.models import WorkScheduleSessionEnum
-
     seen = {}
     today = datetime.now().date()
     for slot in slots:
@@ -298,9 +287,7 @@ def appointment_schedule():
             return redirect(url_for("select_profile"))
         flash("Thông tin không hợp lệ, vui lòng chọn lại", "error")
         return redirect(url_for("select_profile"))
-
     slots = dao.get_available_slots_for_doctor(doctor_id)
-
     if request.method == "POST":
         slot_value = request.form.get("slot_value", "")
         reason = request.form.get("reason", "").strip()
@@ -322,13 +309,10 @@ def appointment_schedule():
             except ValueError:
                 work_schedule_id = None
         if not work_schedule_id or not slot_time:
-            flash("Vui lòng chọn một khung giờ khám.", "warning")
+            flash("Vui lòng chọn một khung giờ khám", "warning")
             return redirect(url_for("appointment_schedule", profile_id=profile_id, doctor_id=doctor_id))
         work_schedule = dao.get_work_schedule_by_id(work_schedule_id)
-        slot_in_range = (
-            work_schedule
-            and work_schedule.startTime <= slot_time < work_schedule.endTime
-        )
+        slot_in_range = (work_schedule and work_schedule.startTime <= slot_time < work_schedule.endTime)
         if (not work_schedule or not work_schedule.isAvailable
                 or work_schedule.doctorId != doctor.id or not slot_in_range
                 or dao.is_slot_taken(doctor.id, work_schedule.workDate, slot_time)):
@@ -336,7 +320,6 @@ def appointment_schedule():
             return redirect(url_for(
                 "appointment_schedule", profile_id=profile_id, doctor_id=doctor_id
             ))
-
         scheduled_date = work_schedule.workDate
         scheduled_time = slot_time
         conflict = dao.find_conflicting_appointment(profile.id, scheduled_date, scheduled_time)
@@ -351,7 +334,6 @@ def appointment_schedule():
                 pending_slot_value=slot_value,
                 pending_reason=reason,
             )
-
         config = dao.get_system_config()
         scheduled_dt = datetime.combine(scheduled_date, scheduled_time)
         if scheduled_dt - datetime.now() < timedelta(minutes=config.minimumBookingTime):
@@ -427,7 +409,6 @@ def payment_status(payment_id):
             return jsonify({"status": "NOT_FOUND"})
         flash("Không tìm thấy giao dịch hoặc trạng thái chưa cập nhật.", "error")
         return redirect(url_for("select_profile"))
-
     if payment.status == PaymentStatusEnum.PENDING:
         if dao.is_payment_expired(payment):
             dao.cancel_pending_appointment(payment)
@@ -435,7 +416,7 @@ def payment_status(payment_id):
         else:
             gateway_status = utils.get_payos_payment_status(payment.transactionId)
             if gateway_status == "PAID":
-                utils.finalize_paid_appointment(payment)  # Bước 14 + 15
+                utils.finalize_paid_appointment(payment)
                 flash("Thanh toán thành công, lịch hẹn đã được xác nhận!", "success")
             elif gateway_status in ("CANCELLED", "EXPIRED", "FAILED"):
                 dao.cancel_pending_appointment(payment)
@@ -458,25 +439,21 @@ def payos_webhook():
     webhook_data = utils.verify_payos_webhook(request.get_data())
     if not webhook_data:
         return jsonify({"error": "invalid signature"}), 400
-
     order_code = webhook_data.order_code
     payment = dao.get_payment_by_transaction_id(order_code)
-
     if payment and payment.status == PaymentStatusEnum.PENDING:
         if webhook_data.code == "00":
             utils.finalize_paid_appointment(payment)
         else:
             dao.cancel_pending_appointment(payment)
-
     return jsonify({"error": None})
-
 
 @app.route("/appointment/success/<int:appointment_id>")
 @login_required
 def appointment_success(appointment_id):
     appointment = dao.get_appointment_by_id(appointment_id)
     if not appointment:
-        flash("Không tìm thấy lịch hẹn.", "error")
+        flash("Không tìm thấy lịch hẹn", "error")
         return redirect(url_for("select_profile"))
     return render_template(
         "appointment_success.html",
@@ -502,25 +479,14 @@ def my_appointments():
         appointments=appointments,
     )
 
-#-----------------ThaiHe--------------------
 @app.route("/doctor-list")
 @login_required
 def doctor_list():
     keyword = request.args.get("q", "").strip()
 
-    specialization_id = request.args.get(
-        "specialization_id",
-        default=None,
-        type=int
-    )
-
-    doctors = dao.get_doctors(
-        keyword=keyword,
-        specialization_id=specialization_id
-    )
-
+    specialization_id = request.args.get("specialization_id",default=None,type=int)
+    doctors = dao.get_doctors(keyword=keyword,specialization_id=specialization_id)
     specializations = dao.get_all_specializations()
-
     return render_template(
         "doctor_list.html",
         doctors=doctors,
@@ -533,74 +499,31 @@ def doctor_list():
 @login_required
 def doctor_detail(doctor_id):
     doctor = dao.get_doctor_detail(doctor_id)
-
     if not doctor:
-        flash(
-            "Không tìm thấy thông tin bác sĩ.",
-            "error"
-        )
+        flash("Không tìm thấy thông tin bác sĩ","error")
         return redirect(url_for("doctor_list"))
-
     reviews = dao.get_reviews_by_doctor(doctor_id)
-
     today = date.today()
-
     current_week_start = dao.get_week_start(today)
-
-    max_week_start = (
-        current_week_start
-        + timedelta(days=7)
-    )
-
-    week_param = request.args.get(
-        "week",
-        ""
-    ).strip()
-
+    max_week_start = (current_week_start+ timedelta(days=7))
+    week_param = request.args.get("week","").strip()
     if week_param:
         try:
-            target_date = datetime.strptime(
-                week_param,
-                "%Y-%m-%d"
-            ).date()
-
+            target_date = datetime.strptime(week_param,"%Y-%m-%d").date()
         except ValueError:
             target_date = today
     else:
         target_date = today
-
-    week_start = dao.get_week_start(
-        target_date
-    )
-
+    week_start = dao.get_week_start(target_date)
     if week_start > max_week_start:
         week_start = max_week_start
-
-    week_end = (
-        week_start
-        + timedelta(days=6)
-    )
-
-    week_days = dao.build_doctor_week_schedule(
-        doctor.id,
-        week_start
-    )
-
-    previous_week = (
-        week_start
-        - timedelta(days=7)
-    )
-
-    next_week = (
-        week_start
-        + timedelta(days=7)
-    )
-
+    week_end = (week_start+ timedelta(days=6))
+    week_days = dao.build_doctor_week_schedule(doctor.id,week_start)
+    previous_week = (week_start - timedelta(days=7))
+    next_week = (week_start + timedelta(days=7))
     config = dao.get_system_config()
-
     return render_template(
         "doctor_detail.html",
-
         doctor=doctor,
         reviews=reviews,
         week_days=week_days,
@@ -609,9 +532,7 @@ def doctor_detail(doctor_id):
         previous_week=previous_week,
         next_week=next_week,
         can_go_previous=True,
-        can_go_next=(
-            week_start < max_week_start
-        ),
+        can_go_next=(week_start < max_week_start),
         config=config,
         today=today
     )
@@ -619,86 +540,32 @@ def doctor_detail(doctor_id):
 @app.route("/doctor/work-schedule")
 @login_required
 def doctor_work_schedule():
-
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash(
-            "Chỉ bác sĩ mới có thể xem lịch làm việc.",
-            "error"
-        )
+        flash("Chỉ bác sĩ mới có thể xem lịch làm việc","error")
         return redirect(url_for("index"))
-
-    doctor = dao.get_doctor_profile_by_user(
-        current_user.id
-    )
-
+    doctor = dao.get_doctor_profile_by_user(current_user.id)
     if not doctor:
-        flash(
-            "Không tìm thấy hồ sơ bác sĩ.",
-            "error"
-        )
+        flash("Không tìm thấy hồ sơ bác sĩ.","error")
         return redirect(url_for("index"))
-
     today = date.today()
-
-    # Tuần hiện tại
     current_week_start = dao.get_week_start(today)
-
-    # YC2:
-    # Chỉ giới hạn tương lai tối đa 1 tuần sau tuần hiện tại
-    max_week_start = (
-        current_week_start
-        + timedelta(days=7)
-    )
-
-    week_param = request.args.get(
-        "week",
-        ""
-    ).strip()
-
+    max_week_start = (current_week_start + timedelta(days=7))
+    week_param = request.args.get("week","").strip()
     if week_param:
         try:
-            target_date = datetime.strptime(
-                week_param,
-                "%Y-%m-%d"
-            ).date()
-
+            target_date = datetime.strptime(week_param,"%Y-%m-%d").date()
         except ValueError:
             target_date = today
-
     else:
         target_date = today
-
-    week_start = dao.get_week_start(
-        target_date
-    )
-
-    # Không chặn tuần quá khứ.
-    # Chỉ chặn nếu đi xa hơn tuần kế tiếp.
+    week_start = dao.get_week_start(target_date)
     if week_start > max_week_start:
         week_start = max_week_start
-
-    week_end = (
-        week_start
-        + timedelta(days=6)
-    )
-
-    week_days = dao.build_doctor_week_schedule(
-        doctor.id,
-        week_start
-    )
-
+    week_end = (week_start + timedelta(days=6))
+    week_days = dao.build_doctor_week_schedule(doctor.id,week_start)
     config = dao.get_system_config()
-
-    previous_week = (
-        week_start
-        - timedelta(days=7)
-    )
-
-    next_week = (
-        week_start
-        + timedelta(days=7)
-    )
-
+    previous_week = ( week_start - timedelta(days=7))
+    next_week = (week_start + timedelta(days=7))
     return render_template(
         "doctor_work_schedule.html",
         active_page="work-schedule",
@@ -706,18 +573,10 @@ def doctor_work_schedule():
         week_days=week_days,
         week_start=week_start,
         week_end=week_end,
-
         previous_week=previous_week,
         next_week=next_week,
-
-        # Luôn được phép xem tuần trước
         can_go_previous=True,
-
-        # Tương lai chỉ tối đa tuần kế tiếp
-        can_go_next=(
-            week_start < max_week_start
-        ),
-
+        can_go_next=(week_start < max_week_start),
         config=config,
         today=today
     )
@@ -725,94 +584,43 @@ def doctor_work_schedule():
 @app.route("/doctor/work-schedule/config", methods=["GET", "POST"])
 @login_required
 def doctor_work_schedule_config():
-
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash(
-            "Chỉ bác sĩ mới có thể cấu hình lịch làm việc.",
-            "error"
-        )
+        flash("Chỉ bác sĩ mới có thể cấu hình lịch làm việc","error")
         return redirect(url_for("index"))
-
-    doctor = dao.get_doctor_profile_by_user(
-        current_user.id
-    )
-
+    doctor = dao.get_doctor_profile_by_user(current_user.id)
     if not doctor:
-        flash(
-            "Không tìm thấy hồ sơ bác sĩ.",
-            "error"
-        )
+        flash("Không tìm thấy hồ sơ bác sĩ.","error")
         return redirect(url_for("index"))
-
     today = date.today()
-
     current_week_start = dao.get_week_start(today)
-
-    week_start = (
-        current_week_start
-        + timedelta(days=7)
-    )
-
-    week_end = (
-        week_start
-        + timedelta(days=6)
-    )
-
+    week_start = (current_week_start + timedelta(days=7))
+    week_end = (week_start+ timedelta(days=6))
     config = dao.get_system_config()
-
-    working_days = set(
-        config.workingDaysList()
-    )
-
+    working_days = set(config.workingDaysList())
     if request.method == "POST":
-
-        selected_sessions = set(
-            request.form.getlist("sessions")
-        )
-
+        selected_sessions = set(request.form.getlist("sessions"))
         try:
             dao.update_doctor_week_schedule(
                 doctor_id=doctor.id,
                 week_start=week_start,
                 selected_sessions=selected_sessions
             )
-
-            flash(
-                "Cập nhật lịch làm việc tuần kế tiếp thành công.",
-                "success"
-            )
-
+            flash("Cập nhật lịch làm việc tuần kế tiếp thành công","success")
         except ValueError as e:
             db.session.rollback()
-            flash(
-                str(e),
-                "error"
-            )
-
+            flash(str(e),"error")
         return redirect(
-            url_for(
-                "doctor_work_schedule_config"
-            )
-        )
-
-    week_days = dao.build_doctor_week_schedule(
-        doctor.id,
-        week_start
-    )
-
+            url_for("doctor_work_schedule_config"))
+    week_days = dao.build_doctor_week_schedule(doctor.id,week_start)
     return render_template(
         "doctor_work_schedule_config.html",
         active_page="work-schedule",
-
         doctor=doctor,
-
         week_days=week_days,
         week_start=week_start,
         week_end=week_end,
-
         config=config,
         working_days=working_days,
-
         today=today,
         weekday_code=dao.WEEKDAY_CODE
     )
@@ -838,7 +646,6 @@ def _serialize_doctor_with_slots(doctor, slots, suggestion_id=None):
 @app.route("/chatbot/init")
 @login_required
 def chatbot_init():
-    # mở cửa sổ Chatbot, trả về lời chào + các ngày được phép đặt lịch.
     dates = dao.get_allowed_booking_dates(days_ahead=14)
     return jsonify({
         "greeting": (
@@ -863,23 +670,17 @@ def chatbot_init():
 @app.route("/chatbot/analyze", methods=["POST"])
 @login_required
 def chatbot_analyze():
-    # nhận triệu chứng + ngày khám, gọi Gemini xác định chuyên khoa,
-    # tra cứu bác sĩ/khung giờ trống và trả kết quả cho Chatbot hiển thị.
     payload = request.get_json(silent=True) or {}
     symptom_text = (payload.get("message") or "").strip()
     date_iso = payload.get("date")
     session_id = payload.get("session_id")
-
     if not symptom_text or not date_iso:
         return jsonify({"error": "invalid_input", "message": "Thiếu ngày khám hoặc mô tả triệu chứng."}), 400
     try:
         booked_date = datetime.strptime(date_iso, "%Y-%m-%d").date()
     except ValueError:
         return jsonify({"error": "invalid_input", "message": "Ngày khám không hợp lệ."}), 400
-
     specializations = dao.get_specializations_brief()
-
-    # lỗi khi phân tích triệu chứng (gọi Gemini thất bại)
     try:
         ai_result = classify_specialization(symptom_text, specializations)
     except GeminiServiceError:
@@ -888,8 +689,6 @@ def chatbot_analyze():
             "message": "Hệ thống gặp lỗi khi phân tích triệu chứng, vui lòng thử lại sau.",
             "fallback_url": url_for("doctor_list"),
         }), 502
-
-    # Lưu / cập nhật phiên chat để phục vụ audit + liên kết lịch hẹn sau này
     if session_id:
         session = dao.get_chatbot_session_by_id(session_id)
     else:
@@ -908,8 +707,6 @@ def chatbot_analyze():
         )
 
     specialization_id = ai_result["specialization_id"]
-
-    # không xác định được chuyên khoa
     if not specialization_id:
         return jsonify({
             "status": "NEED_MANUAL_SPECIALIZATION",
@@ -925,8 +722,6 @@ def chatbot_analyze():
     doctors_with_slots = dao.get_doctors_with_slots_by_specialization_on_date(
         specialization_id, booked_date
     )
-
-    # hết lịch trống trong ngày đã chọn
     if not doctors_with_slots:
         return jsonify({
             "status": "NO_SLOTS",
@@ -937,7 +732,6 @@ def chatbot_analyze():
                 f"{booked_date.strftime('%d/%m/%Y')}. Bạn vui lòng chọn ngày khám khác."
             ),
         })
-
     doctors_payload = []
     for item in doctors_with_slots:
         earliest = item["slots"][0]
@@ -952,7 +746,6 @@ def chatbot_analyze():
         doctors_payload.append(
             _serialize_doctor_with_slots(item["doctor"], item["slots"], suggestion.id)
         )
-
     return jsonify({
         "status": "OK",
         "session_id": session.id,
@@ -963,11 +756,9 @@ def chatbot_analyze():
         "doctors": doctors_payload,
     })
 
-
 @app.route("/chatbot/manual-specialization", methods=["POST"])
 @login_required
 def chatbot_manual_specialization():
-    #bệnh nhân tự chọn chuyên khoa khi Chatbot không nhận diện được.
     payload = request.get_json(silent=True) or {}
     session_id = payload.get("session_id")
     date_iso = payload.get("date")
@@ -975,7 +766,6 @@ def chatbot_manual_specialization():
         specialization_id = int(payload.get("specialization_id"))
     except (TypeError, ValueError):
         specialization_id = None
-
     specialization = dao.get_specialization_by_id(specialization_id) if specialization_id else None
     if not specialization or not date_iso:
         return jsonify({"error": "invalid_input"}), 400
@@ -989,10 +779,7 @@ def chatbot_manual_specialization():
             user=current_user, query_text="(chọn chuyên khoa thủ công)",
             booked_date=booked_date, specialization_id=specialization.id,
         )
-
-    doctors_with_slots = dao.get_doctors_with_slots_by_specialization_on_date(
-        specialization.id, booked_date
-    )
+    doctors_with_slots = dao.get_doctors_with_slots_by_specialization_on_date(specialization.id, booked_date)
     if not doctors_with_slots:
         return jsonify({
             "status": "NO_SLOTS",
@@ -1029,7 +816,7 @@ def chatbot_manual_specialization():
 def appointment_detail(appointment_id):
     appointment = dao.get_appointment_by_id(appointment_id)
     if not appointment:
-        flash("Không tìm thấy lịch hẹn.", "error")
+        flash("Không tìm thấy lịch hẹn", "error")
         return redirect(url_for("select_profile"))
     return render_template(
         "appointment_detail.html",
@@ -1037,19 +824,17 @@ def appointment_detail(appointment_id):
         appointment=appointment,
     )
 
-
 @app.route("/doctor/appointments")
 @login_required
 def doctor_appointments():
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash("Chỉ tài khoản bác sĩ mới xem được trang này.", "error")
+        flash("Chỉ tài khoản bác sĩ mới xem được trang này", "error")
         return redirect(url_for("index"))
 
     doctor = dao.get_doctor_profile_by_user(current_user.id)
     if not doctor:
-        flash("Không tìm thấy hồ sơ bác sĩ của bạn.", "error")
+        flash("Không tìm thấy hồ sơ bác sĩ của bạn", "error")
         return redirect(url_for("index"))
-
     appointments = (
         Appointment.query
         .filter(Appointment.doctorId == doctor.id)
@@ -1062,13 +847,12 @@ def doctor_appointments():
         appointments=appointments,
     )
 
-
 @app.route("/appointment/<int:appointment_id>/review", methods=["POST"])
 @login_required
 def submit_review(appointment_id):
     appointment = dao.get_appointment_by_id(appointment_id)
     if not appointment:
-        flash("Không tìm thấy lịch hẹn.", "error")
+        flash("Không tìm thấy lịch hẹn", "error")
         return redirect(url_for("my_appointments"))
 
     if appointment.patientProfile.userId != current_user.id:
@@ -1076,23 +860,19 @@ def submit_review(appointment_id):
         return redirect(url_for("my_appointments"))
 
     if appointment.status != AppointmentStatusEnum.COMPLETED:
-        flash("Chỉ có thể đánh giá sau khi cuộc hẹn đã hoàn thành khám.", "warning")
+        flash("Chỉ có thể đánh giá sau khi cuộc hẹn đã hoàn thành khám", "warning")
         return redirect(url_for("my_appointments"))
-
     if appointment.review:
         flash("Lịch hẹn này đã được đánh giá trước đó.", "warning")
         return redirect(url_for("my_appointments"))
-
     rating = request.form.get("rating", type=int)
     comment = request.form.get("comment", "").strip()
     if not rating or rating < 1 or rating > 5:
         flash("Vui lòng chọn số sao đánh giá (1-5 sao).", "error")
         return redirect(url_for("my_appointments"))
-
     dao.create_review(appointment=appointment, author=current_user, rating=rating, comment=comment)
-    flash("Cảm ơn bạn đã đánh giá cuộc hẹn!", "success")
+    flash("Cảm ơn bạn đã đánh giá cuộc hẹn", "success")
     return redirect(url_for("my_appointments"))
-
 
 _ALLOWED_STATUS_TRANSITIONS = {
     AppointmentStatusEnum.CONFIRMED: [
@@ -1101,41 +881,30 @@ _ALLOWED_STATUS_TRANSITIONS = {
         AppointmentStatusEnum.NO_SHOW,
     ]
 }
-
-
 @app.route("/appointment/<int:appointment_id>/status", methods=["POST"])
 @login_required
 def update_appointment_status(appointment_id):
     if current_user.role != UserRoleEnum.DOCTOR:
-        flash("Chỉ tài khoản bác sĩ mới có thể cập nhật trạng thái cuộc hẹn.", "error")
+        flash("Chỉ tài khoản bác sĩ mới có thể cập nhật trạng thái cuộc hẹn", "error")
         return redirect(url_for("index"))
-
     appointment = dao.get_appointment_by_id(appointment_id)
     if not appointment:
-        flash("Không tìm thấy lịch hẹn.", "error")
+        flash("Không tìm thấy lịch hẹn", "error")
         return redirect(url_for("doctor_appointments"))
-
     doctor = dao.get_doctor_profile_by_user(current_user.id)
     if not doctor or appointment.doctorId != doctor.id:
-        flash("Bạn không có quyền cập nhật lịch hẹn này.", "error")
+        flash("Bạn không có quyền cập nhật lịch hẹn này", "error")
         return redirect(url_for("doctor_appointments"))
-
     new_status_raw = request.form.get("new_status", "")
     reason = request.form.get("reason", "").strip()
-
     if new_status_raw not in AppointmentStatusEnum.__members__:
-        flash("Trạng thái không hợp lệ.", "error")
+        flash("Trạng thái không hợp lệ", "error")
         return redirect(url_for("doctor_appointments"))
     new_status = AppointmentStatusEnum[new_status_raw]
-
     allowed = _ALLOWED_STATUS_TRANSITIONS.get(appointment.status, [])
     if new_status not in allowed:
-        flash(
-            f"Không thể chuyển cuộc hẹn từ '{appointment.status.value}' sang '{new_status.value}'.",
-            "error",
-        )
+        flash(f"Không thể chuyển cuộc hẹn từ '{appointment.status.value}' sang '{new_status.value}'","error",)
         return redirect(url_for("doctor_appointments"))
-
     dao.update_appointment_status(
         appointment,
         new_status,
@@ -1143,7 +912,6 @@ def update_appointment_status(appointment_id):
         cancelled_by_user=current_user if new_status == AppointmentStatusEnum.CANCELLED else None,
     )
     return redirect(url_for("doctor_appointments"))
-
 
 @app.route("/appointment/<int:appointment_id>/cancel", methods=["POST"])
 @login_required
@@ -1159,22 +927,19 @@ def cancel_appointment(appointment_id):
     )
     is_appointment_doctor = bool(doctor_profile and appointment.doctorId == doctor_profile.id)
     if not is_patient_owner and not is_appointment_doctor:
-        flash("Bạn không có quyền hủy cuộc hẹn này.", "error")
+        flash("Bạn không có quyền hủy cuộc hẹn này", "error")
         return redirect(url_for("my_appointments"))
     cancelled_by_role = "DOCTOR" if is_appointment_doctor else "PATIENT"
     can_cancel, error_message = dao.can_cancel_appointment(appointment)
     if not can_cancel:
         flash(error_message, "error")
-        return redirect(
-            url_for("doctor_appointments") if cancelled_by_role == "DOCTOR" else url_for("my_appointments")
-        )
+        return redirect(url_for("doctor_appointments") if cancelled_by_role == "DOCTOR" else url_for("my_appointments"))
     reason = request.form.get("reason", "").strip()
     config = dao.get_system_config()
     if cancelled_by_role == "DOCTOR":
-        refund_percent = config.refundPercentageDoctor or 100  # bác sĩ hủy -> luôn hoàn đủ theo cấu hình (mặc định 100%)
+        refund_percent = config.refundPercentageDoctor or 100
     else:
         refund_percent = dao.calculate_patient_refund_percent(config, appointment)
-
     payment = dao.cancel_appointment(appointment, current_user, reason, refund_percent)
     utils.notify_appointment_cancelled(appointment, cancelled_by_role)
     utils.send_appointment_cancel_email(
