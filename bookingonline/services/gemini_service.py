@@ -1,9 +1,6 @@
 import json
-import logging
 import os
 import requests
-
-logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
@@ -16,7 +13,7 @@ SYSTEM_INSTRUCTION = """Bạn là trợ lý y tế của một phòng khám đa 
                         Nhiệm vụ: đọc mô tả triệu chứng của bệnh nhân (tiếng Việt, ngôn ngữ tự nhiên,
                         có thể viết tắt/không dấu) và chọn ĐÚNG MỘT chuyên khoa phù hợp nhất trong
                         danh sách chuyên khoa được cung cấp.
-
+                        
                         Quy tắc bắt buộc:
                         - CHỈ được chọn specialization_id có trong danh sách được cung cấp, không
                           được tự bịa ra chuyên khoa mới.
@@ -27,7 +24,7 @@ SYSTEM_INSTRUCTION = """Bạn là trợ lý y tế của một phòng khám đa 
                         - Trả lời NGẮN GỌN, đúng định dạng JSON yêu cầu, không thêm chữ nào khác.
                     """
 
-RESPONSE_SCHEMA = {
+_RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
         "specialization_id": {
@@ -49,7 +46,7 @@ RESPONSE_SCHEMA = {
 
 
 class GeminiServiceError(Exception):
-    """Lỗi khi gọi Gemini API hoặc parse kết quả"""
+    pass
 
 
 def classify_specialization(symptom_text: str, specializations: list[dict]) -> dict:
@@ -73,17 +70,14 @@ def classify_specialization(symptom_text: str, specializations: list[dict]) -> d
         "generationConfig": {
             "temperature": 0.2,
             "responseMimeType": "application/json",
-            "responseSchema": RESPONSE_SCHEMA,
+            "responseSchema": _RESPONSE_SCHEMA,
         },
     }
 
     try:
         resp = requests.post(
             GEMINI_URL,
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": GEMINI_API_KEY,
-            },
+            params={"key": GEMINI_API_KEY},
             json=payload,
             timeout=15,
         )
@@ -91,13 +85,7 @@ def classify_specialization(symptom_text: str, specializations: list[dict]) -> d
         data = resp.json()
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
         result = json.loads(raw_text)
-    except requests.HTTPError as exc:
-        body = exc.response.text if exc.response is not None else ""
-        logger.error("Gemini API HTTP error %s: %s", exc.response.status_code if exc.response is not None else "?",
-                     body)
-        raise GeminiServiceError(f"Gemini API lỗi hoặc trả về dữ liệu không hợp lệ: {exc}") from exc
     except (requests.RequestException, KeyError, IndexError, json.JSONDecodeError) as exc:
-        logger.error("Gemini API call thất bại: %s", exc)
         raise GeminiServiceError(f"Gemini API lỗi hoặc trả về dữ liệu không hợp lệ: {exc}") from exc
 
     valid_ids = {s["id"] for s in specializations}

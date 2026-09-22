@@ -33,6 +33,8 @@ def seed():
         maxAppointmentsPerDay=1,
         refundPercentagePatient=100,
         refundPercentageDoctor=100,
+        cancellationPenaltyStepMinutes=30,
+        cancellationPenaltyPercentPerStep=5,
     )
     db.session.add(config)
 

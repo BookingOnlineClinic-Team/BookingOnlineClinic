@@ -1,8 +1,6 @@
 from celery import shared_task
-
 from bookingonline.models import dao
 import utils
-
 
 @shared_task
 def check_pending_refunds():

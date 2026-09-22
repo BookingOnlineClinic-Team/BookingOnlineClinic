@@ -180,6 +180,8 @@ class SystemConfig(Base):
     maxAppointmentsPerDay = Column(Integer, default=1)
     refundPercentagePatient = Column(Integer, default=100)
     refundPercentageDoctor = Column(Integer, default=100)
+    cancellationPenaltyStepMinutes = Column(Integer, default=30)
+    cancellationPenaltyPercentPerStep = Column(Integer, default=5)
     def workingDaysList(self):
         return [d.strip() for d in self.workingDays.split(",") if d.strip()]
 if __name__ == "__main__":
