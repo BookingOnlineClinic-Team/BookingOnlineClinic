@@ -52,6 +52,7 @@ def validate_patient_profile_form(form):
     errors = []
     if not name:
         errors.append("Vui lòng nhập họ tên")
+
     if not is_valid_phone(phone):
         errors.append("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)")
     gender = None

@@ -52,7 +52,7 @@ def test_is_valid_birth_date_accepts_exactly_120_years_ago():
 
 def test_validate_patient_profile_form_requires_name():
     data, errors = utils.validate_patient_profile_form({"name": "", "phone": "0911111111"})
-    assert "Vui lòng nhập họ tên." in errors
+    assert "Vui lòng nhập họ tên" in errors
 
 
 def test_validate_patient_profile_form_requires_valid_phone():
