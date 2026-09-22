@@ -55,7 +55,7 @@ def get_all_specializations(active_only=True):
     if active_only:
         q = q.filter(Specialization.active == True)
     # bichnhu
-    return Specialization.query.order_by(Specialization.name).all()
+    return q.order_by(Specialization.name).all()
 
 def get_specialization_by_id(specialization_id):
     return Specialization.query.get(specialization_id)
@@ -528,8 +528,6 @@ def get_specializations_brief():
 
 
 def get_available_slots_for_doctor_on_date(doctor_id, work_date, slot_minutes=30):
-    #lọc theo 1 ngày cụ thể
-    #(dùng cho chatbot vì bệnh nhân đã chọn ngày trước khi mô tả triệu chứng).
     blocks = get_work_schedules_for_doctor_on_date(doctor_id, work_date)
     booked_times = get_booked_times_for_doctor_date(doctor_id, work_date)
     slots = []
@@ -549,10 +547,7 @@ def get_available_slots_for_doctor_on_date(doctor_id, work_date, slot_minutes=30
     return slots
 
 
-def get_doctors_with_slots_by_specialization_on_date(
-    specialization_id, work_date, slot_minutes=30, doctor_limit=5, slot_limit=8
-):
-    #tra cứu bác sĩ thuộc chuyên khoa + khung giờ trống trong ngày đã chọn.
+def get_doctors_with_slots_by_specialization_on_date(specialization_id, work_date, slot_minutes=30, doctor_limit=5, slot_limit=8):
     doctors = get_doctors_by_specialization(specialization_id)
     result = []
     for d in doctors:
@@ -608,8 +603,6 @@ def get_chatbot_suggestion_by_id(suggestion_id):
 
 #BichNhu - Admin - cấu hình tham số
 def update_system_config(config, **data):
-    #Cập nhật các field của SystemConfig (singleton, id=1). Bỏ qua field
-    #có giá trị None (nghĩa là không đổi giá trị đó).
     for key, value in data.items():
         if value is not None:
             setattr(config, key, value)

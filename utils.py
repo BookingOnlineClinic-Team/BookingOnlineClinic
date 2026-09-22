@@ -309,7 +309,7 @@ def validate_system_config_form(form):
             errors.append(f"{label} phải là số nguyên.")
             return None
         if v < min_v or (max_v is not None and v > max_v):
-            upper = max_v if max_v is not None else "∞"
+            upper = max_v if max_v is not None else "-1"
             errors.append(f"{label} phải nằm trong khoảng {min_v}-{upper}.")
             return None
         return v
