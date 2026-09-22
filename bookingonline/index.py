@@ -257,7 +257,7 @@ def select_doctor():
         doctors=doctor_list,
     )
 
-_VN_WEEKDAYS = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
+VN_WEEKDAYS = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
 def _build_date_pills(slots):
     from bookingonline.models.models import WorkScheduleSessionEnum
 
@@ -271,7 +271,7 @@ def _build_date_pills(slots):
             elif work_date == today + timedelta(days=1):
                 label_day = "Ngày mai"
             else:
-                label_day = _VN_WEEKDAYS[work_date.weekday()]
+                label_day = VN_WEEKDAYS[work_date.weekday()]
             seen[work_date] = {
                 "iso": work_date.isoformat(),
                 "label_day": label_day,
@@ -818,7 +818,7 @@ def doctor_work_schedule_config():
     )
 
 #bichnhu-chatbot
-def _serialize_doctor_with_slots(doctor, slots, suggestion_id=None):
+def serialize_doctor_with_slots(doctor, slots, suggestion_id=None):
     return {
         "doctor_id": doctor.id,
         "name": doctor.user.name if doctor.user else "Bác sĩ",
@@ -826,10 +826,11 @@ def _serialize_doctor_with_slots(doctor, slots, suggestion_id=None):
         "experience": doctor.experienceYrs,
         "rating": doctor.averageRating or 0,
         "room": doctor.room,
-        "fee": f"{int(doctor.fee):,}".replace(",", ".") + " ₫",
+        "fee": f"{int(doctor.fee):,}".replace(",", ".") + " đ",
         "suggestion_id": suggestion_id,
         "slots": [
-            {"work_schedule_id": s["work_schedule_id"], "time": s["start"].strftime("%H:%M")}
+            {"work_schedule_id": s["work_schedule_id"],
+             "time": s["start"].strftime("%H:%M")}
             for s in slots
         ],
     }
@@ -851,7 +852,7 @@ def chatbot_init():
                 "iso": d.isoformat(),
                 "label": ("Hôm nay" if d == datetime.now().date()
                           else "Ngày mai" if d == datetime.now().date() + timedelta(days=1)
-                          else _VN_WEEKDAYS[d.weekday()]),
+                          else VN_WEEKDAYS[d.weekday()]),
                 "label_date": d.strftime("%d/%m"),
             }
             for d in dates
@@ -863,8 +864,6 @@ def chatbot_init():
 @app.route("/chatbot/analyze", methods=["POST"])
 @login_required
 def chatbot_analyze():
-    # nhận triệu chứng + ngày khám, gọi Gemini xác định chuyên khoa,
-    # tra cứu bác sĩ/khung giờ trống và trả kết quả cho Chatbot hiển thị.
     payload = request.get_json(silent=True) or {}
     symptom_text = (payload.get("message") or "").strip()
     date_iso = payload.get("date")
@@ -922,9 +921,7 @@ def chatbot_analyze():
         })
 
     specialization = dao.get_specialization_by_id(specialization_id)
-    doctors_with_slots = dao.get_doctors_with_slots_by_specialization_on_date(
-        specialization_id, booked_date
-    )
+    doctors_with_slots = dao.get_doctors_with_slots_by_specialization_on_date(specialization_id, booked_date)
 
     # hết lịch trống trong ngày đã chọn
     if not doctors_with_slots:
@@ -950,7 +947,7 @@ def chatbot_analyze():
             reason=ai_result["reason"],
         )
         doctors_payload.append(
-            _serialize_doctor_with_slots(item["doctor"], item["slots"], suggestion.id)
+            serialize_doctor_with_slots(item["doctor"], item["slots"], suggestion.id)
         )
 
     return jsonify({
@@ -1013,7 +1010,7 @@ def chatbot_manual_specialization():
             reason="Bệnh nhân tự chọn chuyên khoa.",
         )
         doctors_payload.append(
-            _serialize_doctor_with_slots(item["doctor"], item["slots"], suggestion.id)
+            serialize_doctor_with_slots(item["doctor"], item["slots"], suggestion.id)
         )
 
     return jsonify({

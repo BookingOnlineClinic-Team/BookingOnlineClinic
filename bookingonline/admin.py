@@ -1,11 +1,3 @@
-
-# Admin - Cấu hình hệ thống
-# Module này theo cùng phong cách với index.py: định nghĩa route trực tiếp
-# trên `app` dùng chung của project (không dùng Flask Blueprint, vì phần còn
-# lại của codebase cũng không dùng blueprint). Để các route ở đây được đăng
-# ký, index.py (module thực sự chạy `app.run()`) phải import module này -
-# xem dòng `import bookingonline.admin` đã thêm ở đầu index.py.
-
 from functools import wraps
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
@@ -16,8 +8,6 @@ import utils
 
 
 def admin_required(view_func):
-    #Chỉ cho phép tài khoản role ADMIN truy cập. Luôn dùng kèm @login_required
-    #(đặt @login_required phía dưới, chạy trước) để current_user chắc chắn tồn tại.
     @wraps(view_func)
     def wrapper(*args, **kwargs):
         if current_user.role != UserRoleEnum.ADMIN:
@@ -134,14 +124,11 @@ def admin_specialization_delete(specialization_id):
 
 
 # bichnhu - admin - quản lý bác sĩ (tạo tài khoản + hồ sơ bác sĩ)
-
-
 @app.route("/admin/doctors", methods=["GET", "POST"])
 @login_required
 @admin_required
 def admin_doctors():
     if request.method == "POST":
-        # POST ở trang danh sách = TẠO MỚI bác sĩ (kèm tài khoản đăng nhập)
         data, errors = utils.validate_doctor_account_form(request.form, is_edit=False)
         if errors:
             for e in errors:
@@ -258,9 +245,6 @@ def admin_patients():
 @login_required
 @admin_required
 def admin_patient_toggle_active(user_id):
-    # Khóa/Mở khóa tài khoản bệnh nhân. Chặn cẩn thận: route này CHỈ được
-    # tác động lên tài khoản role=PATIENT, tránh trường hợp ai đó sửa tay
-    # URL để khóa nhầm tài khoản ADMIN/DOCTOR.
     user = dao.get_user_by_id(user_id)
     if not user or user.role != UserRoleEnum.PATIENT:
         flash("Không tìm thấy bệnh nhân.", "error")

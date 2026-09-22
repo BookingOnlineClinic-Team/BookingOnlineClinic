@@ -278,8 +278,6 @@ def generate_work_schedules_for_doctor(doctor, start_date: date, end_date: date,
 # bích như - admin - cau hinh tham so
 VALID_WORKING_DAYS = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
 def validate_system_config_form(form):
-    #Validate form cấu hình hệ thống (trang Admin).
-    #Trả về (data, errors) giống các hàm validate khác trong file này.
     errors = []
     data = {}
 
@@ -332,7 +330,7 @@ def validate_system_config_form(form):
             errors.append(f"{label} phải là số nguyên.")
             return None
         if v < min_v or (max_v is not None and v > max_v):
-            upper = max_v if max_v is not None else "∞"
+            upper = max_v if max_v is not None else "-1"
             errors.append(f"{label} phải nằm trong khoảng {min_v}-{upper}.")
             return None
         return v
@@ -354,7 +352,6 @@ def validate_system_config_form(form):
 VALID_SPECIALIZATION_ICONS = ["stethoscope", "heart-pulse", "baby", "sparkles", "activity"]
 
 def validate_specialization_form(form, exclude_id=None):
-    #Validate form thêm/sửa chuyên khoa (trang Admin).
     errors = []
     data = {}
 

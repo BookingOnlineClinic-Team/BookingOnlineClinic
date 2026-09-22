@@ -15,7 +15,7 @@
   const inputArea = document.getElementById("chatbot-input-area");
   const textInput = document.getElementById("chatbot-text-input");
   const sendBtn = document.getElementById("chatbot-send-btn");
-
+  //lưu trạng thái hiện tại của chatbot
   let state = {
     sessionId: null,
     selectedDate: null,
@@ -24,7 +24,9 @@
 
   function resetConversation() {
     state = { sessionId: null, selectedDate: null, step: "idle" };
+    //xóa tin nhắn
     messagesEl.innerHTML = "";
+    //khóa ô nhập
     setInputEnabled(false);
   }
 
