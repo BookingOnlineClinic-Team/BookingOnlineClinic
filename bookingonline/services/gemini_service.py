@@ -46,7 +46,7 @@ _RESPONSE_SCHEMA = {
 
 
 class GeminiServiceError(Exception):
-    """Lỗi khi gọi Gemini API hoặc parse kết quả (ánh xạ vào luồng ngoại lệ UC_03)."""
+    pass
 
 
 def classify_specialization(symptom_text: str, specializations: list[dict]) -> dict:
